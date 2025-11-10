@@ -27,6 +27,18 @@ runs:
           }
         }' "${{ inputs.thunderstore_path }}")
         
+        echo "DEBUG: DEPENDENCIES variable content:"
+        echo "$DEPENDENCIES"
+        echo "DEBUG: Number of dependencies: $(echo "$DEPENDENCIES" | wc -l)"
+        echo ""
+        
+        if [ -z "$DEPENDENCIES" ]; then
+          echo "ERROR: No dependencies found in ${{ inputs.thunderstore_path }}"
+          echo "Thunderstore.toml content:"
+          cat "${{ inputs.thunderstore_path }}"
+          exit 1
+        fi
+        
         echo "Installing dependencies from Thunderstore..."
         
         # Process each dependency
