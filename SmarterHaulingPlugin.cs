@@ -18,7 +18,7 @@ namespace Ostranauts.Bit.SmarterHauling
     /// to containers to filter what items can be stored.
     /// </summary>
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency("com.ostranauts.bitlib", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.ostranauts.LaunchControl", BepInDependency.DependencyFlags.HardDependency)]
     public class SmarterHaulingPlugin : BaseUnityPlugin
     {
         internal static new ManualLogSource Logger;
