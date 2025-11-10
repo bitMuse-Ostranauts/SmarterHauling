@@ -35,9 +35,9 @@ runs:
           echo ""
           echo "Downloading: $NAMESPACE/$MODNAME v$VERSION"
           
-          # Download from Thunderstore
+          # Download from Thunderstore (Ostranauts community)
           curl -L -o "${MODNAME}.zip" \
-            "https://thunderstore.io/package/download/${NAMESPACE}/${MODNAME}/${VERSION}/"
+            "https://thunderstore.io/c/ostranauts/p/${NAMESPACE}/${MODNAME}/${VERSION}/download/"
           
           # Extract to temp directory
           unzip -q "${MODNAME}.zip" -d "temp_${MODNAME}"
