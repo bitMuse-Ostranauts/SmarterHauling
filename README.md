@@ -10,18 +10,20 @@ What it does
 **Container preferences**: Right-click any storage container to open its settings. You can pick categories of items or specific items you want that container to accept. When crew haul items, they will automatically deliver them to the container you configured. If no preferences are set, hauling works the same as it always has.
 
 
-How to use it
--------------
+**How it works:**
+- Select any container on your ship
+- Click the new **"Storage Settings"** button that appears in the tooltip
+- A settings panel will appear showing all available item categories
+- Click the checkbox icons to configure what the container accepts:
+  - **:green_circle: Green Checkmark** = This category/item is **fully enabled** (all items will be stored here)
+  - **:yellow_circle: Yellow Square** = This category is **partially enabled** (some subcategories/items are enabled, but not all)
+  - **:red_circle: Red Square** = This category/item is **disabled** (won't be stored here)
 
-1. Install LaunchControl and Smarter Hauling into your BepInEx plugins folder.
-2. Start the game and load your save.
-3. Right-click a storage container (locker, crate, bin, anything with storage).
-4. Look for the "Storage Settings" panel in the tooltip. Click the Settings button.
-5. A window opens showing item categories. Click the checkbox next to a category to allow or block it.
-6. Close the window. The container now remembers your choices and crew will deliver matching items there automatically.
-
-Categories are grouped by type: Food, Tools, Medical, and so on. If you expand a category, you can pick individual items instead. The preferences save with your game, so you only need to set it up once per container.
-
+**Example uses:**
+- Mark a freezer to only accept food items
+- Dedicate a specific locker for tools and equipment
+- Set up a medical bay storage to only accept medical supplies
+- Create organized tool chests that only accept specific item types
 
 What you should know
 --------------------
