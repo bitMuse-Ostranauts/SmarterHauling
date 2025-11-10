@@ -43,6 +43,19 @@ jobs:
         with:
           thunderstore_path: thunderstore.toml
       
+      - name: Debug - Check LaunchControl reference
+        shell: bash
+        run: |
+          echo "Checking for LaunchControl.dll..."
+          echo "Project reference: ../LaunchControl/LaunchControl.csproj"
+          ls -la ../LaunchControl/LaunchControl.csproj 2>/dev/null || echo "Not found"
+          echo ""
+          echo "vendor/refs/plugins/:"
+          ls -la vendor/refs/plugins/ 2>/dev/null || echo "Directory not found"
+          echo ""
+          echo "All vendor contents:"
+          find vendor -name "*.dll" -type f 2>/dev/null || echo "No DLLs found"
+      
       - name: Download and decrypt reference assemblies
         uses: ./.github/actions/download-assemblies
         with:
