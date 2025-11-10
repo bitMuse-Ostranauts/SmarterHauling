@@ -45,16 +45,30 @@ runs:
         # Process each dependency
         for dep in $DEPENDENCIES; do
           # Parse dependency string: Namespace-ModName-Version
+          # Note: ModName can contain underscores, but Version is always last after final dash
           NAMESPACE=$(echo $dep | cut -d'-' -f1)
-          MODNAME=$(echo $dep | cut -d'-' -f2)
-          VERSION=$(echo $dep | cut -d'-' -f3)
+          # Get everything after first dash, then split at last dash to separate modname and version
+          TEMP=$(echo $dep | cut -d'-' -f2-)
+          VERSION=$(echo $TEMP | rev | cut -d'-' -f1 | rev)
+          MODNAME=$(echo $TEMP | rev | cut -d'-' -f2- | rev)
           
           echo ""
           echo "Downloading: $NAMESPACE/$MODNAME v$VERSION"
           
-          # Download from Thunderstore (Ostranauts community)
-          curl -L -o "${MODNAME}.zip" \
-            "https://thunderstore.io/c/ostranauts/p/${NAMESPACE}/${MODNAME}/${VERSION}/download/"
+          # Download from Thunderstore
+          DOWNLOAD_URL="https://thunderstore.io/package/download/${NAMESPACE}/${MODNAME}/${VERSION}/"
+          echo "DEBUG: Download URL: $DOWNLOAD_URL"
+          
+          curl -L -o "${MODNAME}.zip" "$DOWNLOAD_URL"
+          
+          # Check if we got a valid zip file
+          if ! unzip -t "${MODNAME}.zip" > /dev/null 2>&1; then
+            echo "ERROR: Downloaded file is not a valid ZIP. First 500 bytes:"
+            head -c 500 "${MODNAME}.zip"
+            echo ""
+            echo "File size: $(wc -c < "${MODNAME}.zip") bytes"
+            exit 1
+          fi
           
           # Extract to temp directory
           unzip -q "${MODNAME}.zip" -d "temp_${MODNAME}"
