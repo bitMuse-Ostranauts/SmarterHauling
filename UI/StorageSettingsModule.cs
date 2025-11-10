@@ -272,7 +272,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
         }
 
         /// <summary>
-        /// Update the chip text based on whitelist state
+        /// Update the chip text based on preference state
         /// </summary>
         private void UpdateChipText()
         {
@@ -281,7 +281,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
                 return;
             }
 
-            ContainerStoragePrefs prefs = _container.GetWhitelist();
+            ContainerStoragePrefs prefs = _container.GetPrefs();
             if (prefs == null || prefs.AllowedCategories == null || prefs.AllowedCategories.Count == 0)
             {
                 _chipText.text = "None";
@@ -341,7 +341,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
         }
 
         /// <summary>
-        /// Build the tooltip text based on current whitelist state
+        /// Build the tooltip text based on current preference state
         /// </summary>
         private string BuildTooltipText()
         {

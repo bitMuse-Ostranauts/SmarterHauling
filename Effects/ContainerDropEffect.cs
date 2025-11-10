@@ -17,7 +17,7 @@ namespace Ostranauts.Bit.SmarterHauling.Effects
     }
 
     /// <summary>
-    /// Custom effect that handles dropping items into whitelisted containers
+    /// Custom effect that handles dropping items into containers with preferences
     /// </summary>
     public class ContainerDropEffect : IEffect
     {
@@ -221,7 +221,7 @@ namespace Ostranauts.Bit.SmarterHauling.Effects
                 }
 
                 // Verify item is still allowed (container settings might have changed)
-                var prefs = targetContainer.GetWhitelist();
+                var prefs = targetContainer.GetPrefs();
                 if (prefs != null && !prefs.IsItemAllowed(item))
                 {
                     SmarterHaulingPlugin.Logger.LogInfo($"[ContainerDropEffect] Item {item.strNameFriendly} no longer allowed in {containerCO.strNameFriendly}, cancelling job");

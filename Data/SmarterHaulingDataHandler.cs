@@ -6,14 +6,14 @@ using System.Linq;
 namespace Ostranauts.Bit.SmarterHauling.Data
 {
     /// <summary>
-    /// Persistent data handler for SmarterHauling container whitelist preferences.
+    /// Persistent data handler for SmarterHauling container preferences.
     /// Saves/loads container storage preferences with game saves using the generic list handler.
     /// </summary>
     public class SmarterHaulingDataHandler : ListPersistentDataHandler<ContainerStoragePrefs>
     {
         public override string ModuleName => "smarterhauling";
 
-        protected override string FileName => "container_whitelists.json";
+        protected override string FileName => "container_prefs.json";
 
         public override bool CanSave() => true;
 
@@ -25,10 +25,10 @@ namespace Ostranauts.Bit.SmarterHauling.Data
         /// </summary>
         protected override List<ContainerStoragePrefs> GetDataList()
         {
-            var prefsDict = ContainerExtensions.GetAllWhitelists();
+            var prefsDict = ContainerExtensions.GetAllPrefs();
             if (prefsDict == null || prefsDict.Count == 0)
             {
-                LogInfo("No whitelists to save (dictionary is empty)");
+                LogInfo("No preferences to save (dictionary is empty)");
                 return null;
             }
             
@@ -37,7 +37,7 @@ namespace Ostranauts.Bit.SmarterHauling.Data
             foreach (var kvp in prefsDict)
             {
                 result.Add(kvp.Value);
-                LogInfo($"Saving whitelist for container {kvp.Key} with {kvp.Value.AllowedCategories?.Count ?? 0} categories");
+                LogInfo($"Saving preferences for container {kvp.Key} with {kvp.Value.AllowedCategories?.Count ?? 0} categories");
             }
             LogInfo($"GetDataList returning {result.Count} container preferences");
             return result;
@@ -64,7 +64,7 @@ namespace Ostranauts.Bit.SmarterHauling.Data
                 if (!string.IsNullOrEmpty(prefs.ContainerId))
                 {
                     int categoryCount = prefs.AllowedCategories?.Count ?? 0;
-                    LogInfo($"Loading whitelist for container {prefs.ContainerId} with {categoryCount} categories");
+                    LogInfo($"Loading preferences for container {prefs.ContainerId} with {categoryCount} categories");
                     if (categoryCount > 0 && prefs.AllowedCategories != null)
                     {
                         for (int i = 0; i < prefs.AllowedCategories.Count; i++)
@@ -81,25 +81,25 @@ namespace Ostranauts.Bit.SmarterHauling.Data
                 }
             }
 
-            LogInfo($"Loading {prefsDict.Count} whitelists into extension system");
+            LogInfo($"Loading {prefsDict.Count} preferences into extension system");
 
             // Load into the extension system
-            ContainerExtensions.LoadWhitelists(prefsDict);
+            ContainerExtensions.LoadPrefs(prefsDict);
             
-            int loadedCount = ContainerExtensions.GetWhitelistCount();
-            LogInfo($"After loading, ContainerExtensions has {loadedCount} whitelists");
+            int loadedCount = ContainerExtensions.GetPrefsCount();
+            LogInfo($"After loading, ContainerExtensions has {loadedCount} preferences");
         }
 
         /// <summary>
-        /// Clear existing whitelists before loading.
+        /// Clear existing preferences before loading.
         /// </summary>
         protected override void ClearData()
         {
-            int countBeforeClear = ContainerExtensions.GetWhitelistCount();
-            LogInfo($"ClearData called - clearing {countBeforeClear} existing whitelists");
-            ContainerExtensions.ClearAllWhitelists();
-            int countAfterClear = ContainerExtensions.GetWhitelistCount();
-            LogInfo($"After clear, {countAfterClear} whitelists remain (should be 0)");
+            int countBeforeClear = ContainerExtensions.GetPrefsCount();
+            LogInfo($"ClearData called - clearing {countBeforeClear} existing preferences");
+            ContainerExtensions.ClearAllPrefs();
+            int countAfterClear = ContainerExtensions.GetPrefsCount();
+            LogInfo($"After clear, {countAfterClear} preferences remain (should be 0)");
         }
 
         /// <summary>

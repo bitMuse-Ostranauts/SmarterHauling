@@ -586,7 +586,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             // Set initial toggle status based on current prefs
             if (_coTarget != null)
             {
-                var prefs = ContainerExtensions.GetWhitelistById(_coTarget.strID);
+                var prefs = ContainerExtensions.GetPrefsById(_coTarget.strID);
                 var status = CalculateToggleStatus(prefs, widget.CategoryIds);
                 widget.SetToggleStatus(status);
             }
@@ -750,7 +750,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             // Set initial toggle status based on current prefs
             if (_coTarget != null)
             {
-                var prefs = ContainerExtensions.GetWhitelistById(_coTarget.strID);
+                var prefs = ContainerExtensions.GetPrefsById(_coTarget.strID);
                 var status = CalculateToggleStatus(prefs, widget.CategoryIds);
                 widget.SetToggleStatus(status);
             }
@@ -856,10 +856,10 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             }
             
             // Get or create the storage prefs using the container ID directly
-            var prefs = ContainerExtensions.GetOrCreateWhitelist(_coTarget.strID);
+            var prefs = ContainerExtensions.GetOrCreatePrefs(_coTarget.strID);
             if (prefs == null)
             {
-                Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogWarning("[HandleCategoryToggle] Failed to get or create whitelist");
+                Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogWarning("[HandleCategoryToggle] Failed to get or create preferences");
                 return;
             }
             

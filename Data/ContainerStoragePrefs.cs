@@ -171,7 +171,7 @@ namespace Ostranauts.Bit.SmarterHauling.Data
         {
             if (item == null || AllowedCategories.Count == 0)
             {
-                return false; // Empty whitelist allows nothing
+                return false; // Empty preference list allows nothing
             }
 
             var categoryManager = BitLib.Instance?.Items?.Categories;

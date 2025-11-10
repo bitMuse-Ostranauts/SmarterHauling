@@ -52,7 +52,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                 return null;
             }
 
-            List<Container> whitelistedMatches = new List<Container>();
+            List<Container> matchingContainers = new List<Container>();
 
             foreach (CondOwner co in allCOs)
             {
@@ -74,7 +74,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                     continue;
                 }
 
-                ContainerStoragePrefs prefs = container.GetWhitelist();
+                ContainerStoragePrefs prefs = container.GetPrefs();
                 
                 if (prefs != null && prefs.AllowedCategories.Count > 0)
                 {
@@ -94,7 +94,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                                     canAcceptItem = true;
                                     if (SmarterHaulingPlugin.EnableDebugLogging)
                                     {
-                                        SmarterHaulingPlugin.Logger.LogDebug($"[Whitelist] Container {co.strNameFriendly} can stack with existing item");
+                                        SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Container {co.strNameFriendly} can stack with existing item");
                                     }
                                     break;
                                 }
@@ -107,48 +107,48 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                             canAcceptItem = true;
                             if (SmarterHaulingPlugin.EnableDebugLogging)
                             {
-                                SmarterHaulingPlugin.Logger.LogDebug($"[Whitelist] Container {co.strNameFriendly} has empty space");
+                                SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Container {co.strNameFriendly} has empty space");
                             }
                         }
                         
                         if (canAcceptItem)
                         {
-                            whitelistedMatches.Add(container);
+                            matchingContainers.Add(container);
                             
                             if (SmarterHaulingPlugin.EnableDebugLogging)
                             {
-                                SmarterHaulingPlugin.Logger.LogDebug($"[Whitelist] Found match: {co.strNameFriendly}");
+                                SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Found match: {co.strNameFriendly}");
                             }
                         }
                         else
                         {
                             if (SmarterHaulingPlugin.EnableDebugLogging)
                             {
-                                SmarterHaulingPlugin.Logger.LogDebug($"[Whitelist] Container {co.strNameFriendly} matches whitelist but cannot accept item (full and no stacking)");
+                                SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Container {co.strNameFriendly} matches preferences but cannot accept item (full and no stacking)");
                             }
                         }
                     }
                 }
             }
 
-            if (whitelistedMatches.Count > 0)
+            if (matchingContainers.Count > 0)
             {
                 Container bestContainer = null;
                 int maxEmptySlots = -1;
                 
-                for (int i = 0; i < whitelistedMatches.Count; i++)
+                for (int i = 0; i < matchingContainers.Count; i++)
                 {
-                    int emptySlots = GetEmptySlotCount(whitelistedMatches[i].gridLayout);
+                    int emptySlots = GetEmptySlotCount(matchingContainers[i].gridLayout);
                     if (emptySlots > maxEmptySlots)
                     {
                         maxEmptySlots = emptySlots;
-                        bestContainer = whitelistedMatches[i];
+                        bestContainer = matchingContainers[i];
                     }
                 }
                 
                 if (bestContainer != null && SmarterHaulingPlugin.EnableDebugLogging)
                 {
-                    SmarterHaulingPlugin.Logger.LogDebug($"[Whitelist] Selected container {bestContainer.CO.strNameFriendly} with {maxEmptySlots} empty slots");
+                    SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Selected container {bestContainer.CO.strNameFriendly} with {maxEmptySlots} empty slots");
                 }
                 
                 return bestContainer;
@@ -192,7 +192,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
 
             SmarterHaulingPlugin.Logger.LogInfo($"[HaulZone_Prefix] Current task.nTile={task.nTile}, task.strTileShip={task.strTileShip}");
 
-            // Check if we have a whitelisted container that wants this item
+            // Check if we have a container with preferences that wants this item
             Container bestContainer = FindBestHaulDestination(coTarget, coHauler.ship);
             
             if (bestContainer != null && bestContainer.CO != null)
@@ -316,7 +316,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
             }
             else
             {
-                SmarterHaulingPlugin.Logger.LogInfo($"[HaulZone_Prefix] No whitelisted container found for {coTarget.strNameFriendly}, using default haul zone");
+                SmarterHaulingPlugin.Logger.LogInfo($"[HaulZone_Prefix] No container with preferences found for {coTarget.strNameFriendly}, using default haul zone");
             }
             
             return true; // Run original method

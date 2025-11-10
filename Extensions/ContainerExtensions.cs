@@ -22,7 +22,7 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// </summary>
         /// <param name="container">The container</param>
         /// <returns>ContainerStoragePrefs if exists, null otherwise</returns>
-        public static ContainerStoragePrefs GetWhitelist(this Container container)
+        public static ContainerStoragePrefs GetPrefs(this Container container)
         {
             if (container == null || container.CO == null)
             {
@@ -43,7 +43,7 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// </summary>
         /// <param name="container">The container</param>
         /// <param name="prefs">The storage preferences to set</param>
-        public static void SetWhitelist(this Container container, ContainerStoragePrefs prefs)
+        public static void SetPrefs(this Container container, ContainerStoragePrefs prefs)
         {
             if (container == null || container.CO == null)
             {
@@ -74,7 +74,7 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// </summary>
         /// <param name="container">The container</param>
         /// <returns>True if container has storage preferences</returns>
-        public static bool HasWhitelist(this Container container)
+        public static bool HasPrefs(this Container container)
         {
             if (container == null || container.CO == null)
             {
@@ -88,7 +88,7 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// Remove the storage preferences from a container
         /// </summary>
         /// <param name="container">The container</param>
-        public static void RemoveWhitelist(this Container container)
+        public static void RemovePrefs(this Container container)
         {
             if (container == null || container.CO == null)
             {
@@ -104,9 +104,9 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// <param name="container">The container</param>
         /// <param name="item">The item to check</param>
         /// <returns>True if allowed or no preferences, false if blocked by preferences</returns>
-        public static bool IsItemAllowedByWhitelist(this Container container, CondOwner item)
+        public static bool IsItemAllowedByPrefs(this Container container, CondOwner item)
         {
-            ContainerStoragePrefs prefs = container.GetWhitelist();
+            ContainerStoragePrefs prefs = container.GetPrefs();
             
             // If no preferences, allow all items
             if (prefs == null)
@@ -121,7 +121,7 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// Get all containers with storage preferences
         /// </summary>
         /// <returns>Dictionary of container IDs to storage preferences</returns>
-        public static Dictionary<string, ContainerStoragePrefs> GetAllWhitelists()
+        public static Dictionary<string, ContainerStoragePrefs> GetAllPrefs()
         {
             // Return a copy to prevent external modification
             return new Dictionary<string, ContainerStoragePrefs>(containerStoragePrefs);
@@ -130,35 +130,35 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// <summary>
         /// Clear all storage preferences (useful for cleanup or new game)
         /// </summary>
-        public static void ClearAllWhitelists()
+        public static void ClearAllPrefs()
         {
             int countBefore = containerStoragePrefs.Count;
             containerStoragePrefs.Clear();
-            UnityEngine.Debug.Log($"[ContainerExtensions] ClearAllWhitelists cleared {countBefore} whitelists");
+            UnityEngine.Debug.Log($"[ContainerExtensions] ClearAllPrefs cleared {countBefore} preferences");
         }
 
         /// <summary>
         /// Load storage preferences from serialized data
         /// </summary>
         /// <param name="prefsData">Dictionary of container IDs to storage preferences</param>
-        public static void LoadWhitelists(Dictionary<string, ContainerStoragePrefs> prefsData)
+        public static void LoadPrefs(Dictionary<string, ContainerStoragePrefs> prefsData)
         {
             if (prefsData == null)
             {
-                UnityEngine.Debug.Log("[ContainerExtensions] LoadWhitelists called with null dictionary");
+                UnityEngine.Debug.Log("[ContainerExtensions] LoadPrefs called with null dictionary");
                 return;
             }
 
-            UnityEngine.Debug.Log($"[ContainerExtensions] LoadWhitelists called with {prefsData.Count} items");
+            UnityEngine.Debug.Log($"[ContainerExtensions] LoadPrefs called with {prefsData.Count} items");
             
             foreach (var kvp in prefsData)
             {
                 int catCount = kvp.Value?.AllowedCategories?.Count ?? 0;
-                UnityEngine.Debug.Log($"[ContainerExtensions] Adding whitelist for {kvp.Key} with {catCount} categories");
+                UnityEngine.Debug.Log($"[ContainerExtensions] Adding preferences for {kvp.Key} with {catCount} categories");
                 containerStoragePrefs[kvp.Key] = kvp.Value;
             }
             
-            UnityEngine.Debug.Log($"[ContainerExtensions] After LoadWhitelists, total count is {containerStoragePrefs.Count}");
+            UnityEngine.Debug.Log($"[ContainerExtensions] After LoadPrefs, total count is {containerStoragePrefs.Count}");
         }
 
         /// <summary>
@@ -181,16 +181,16 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// </summary>
         /// <param name="co">The CondOwner</param>
         /// <returns>True if has container with storage preferences</returns>
-        public static bool HasContainerWithWhitelist(this CondOwner co)
+        public static bool HasContainerWithPrefs(this CondOwner co)
         {
             Container container = co.GetContainer();
-            return container != null && container.HasWhitelist();
+            return container != null && container.HasPrefs();
         }
 
         /// <summary>
         /// Get the number of active storage preferences
         /// </summary>
-        public static int GetWhitelistCount()
+        public static int GetPrefsCount()
         {
             return containerStoragePrefs.Count;
         }
@@ -200,7 +200,7 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// </summary>
         /// <param name="containerId">The container ID</param>
         /// <returns>ContainerStoragePrefs if exists, null otherwise</returns>
-        public static ContainerStoragePrefs GetWhitelistById(string containerId)
+        public static ContainerStoragePrefs GetPrefsById(string containerId)
         {
             if (string.IsNullOrEmpty(containerId))
             {
@@ -220,7 +220,7 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// </summary>
         /// <param name="containerId">The container ID</param>
         /// <param name="prefs">The storage preferences to set</param>
-        public static void SetWhitelistById(string containerId, ContainerStoragePrefs prefs)
+        public static void SetPrefsById(string containerId, ContainerStoragePrefs prefs)
         {
             if (string.IsNullOrEmpty(containerId))
             {
@@ -249,18 +249,18 @@ namespace Ostranauts.Bit.SmarterHauling.Extensions
         /// </summary>
         /// <param name="containerId">The container ID</param>
         /// <returns>ContainerStoragePrefs (existing or newly created)</returns>
-        public static ContainerStoragePrefs GetOrCreateWhitelist(string containerId)
+        public static ContainerStoragePrefs GetOrCreatePrefs(string containerId)
         {
             if (string.IsNullOrEmpty(containerId))
             {
                 return null;
             }
 
-            var prefs = GetWhitelistById(containerId);
+            var prefs = GetPrefsById(containerId);
             if (prefs == null)
             {
                 prefs = new ContainerStoragePrefs(containerId);
-                SetWhitelistById(containerId, prefs);
+                SetPrefsById(containerId, prefs);
             }
 
             return prefs;

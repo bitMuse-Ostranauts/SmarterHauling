@@ -4,13 +4,13 @@ using Ostranauts.Bit.SmarterHauling.Extensions;
 namespace Ostranauts.Bit.SmarterHauling.Patches
 {
     /// <summary>
-    /// Patches for Container to add whitelist functionality
+    /// Patches for Container to add preference functionality
     /// </summary>
     [HarmonyPatch(typeof(Container))]
     public class ContainerPatches
     {
         /// <summary>
-        /// Patch Container.Destroy to clean up whitelist data when container is destroyed
+        /// Patch Container.Destroy to clean up preference data when container is destroyed
         /// </summary>
         [HarmonyPatch("Destroy")]
         [HarmonyPrefix]
@@ -21,13 +21,13 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                 return;
             }
 
-            // Remove whitelist when container is destroyed
-            if (__instance.HasWhitelist())
+            // Remove preferences when container is destroyed
+            if (__instance.HasPrefs())
             {
                 SmarterHaulingPlugin.Logger.LogDebug(
-                    $"[ContainerWhitelist] Removing whitelist for destroyed container {__instance.CO.strNameFriendly}"
+                    $"[ContainerPrefs] Removing preferences for destroyed container {__instance.CO.strNameFriendly}"
                 );
-                __instance.RemoveWhitelist();
+                __instance.RemovePrefs();
             }
         }
     }

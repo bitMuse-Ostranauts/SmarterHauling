@@ -14,7 +14,7 @@ namespace Ostranauts.Bit.SmarterHauling
 {
     /// <summary>
     /// SmarterHauling - Makes characters with storage containers fill their inventory
-    /// with multiple items before delivering when hauling. Also adds whitelist functionality
+    /// with multiple items before delivering when hauling. Also adds preference functionality
     /// to containers to filter what items can be stored.
     /// </summary>
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -36,8 +36,8 @@ namespace Ostranauts.Bit.SmarterHauling
             
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} v{PluginInfo.PLUGIN_VERSION} is loading...");
 
-            // Initialize whitelist system
-            InitializeWhitelistSystem();
+            // Initialize preference system
+            InitializePreferenceSystem();
 
             // Register persistent data handler for save/load
             RegisterPersistentDataHandler();
@@ -75,7 +75,7 @@ namespace Ostranauts.Bit.SmarterHauling
             }
         }
 
-        private void InitializeWhitelistSystem()
+        private void InitializePreferenceSystem()
         {
             try
             {
@@ -92,7 +92,7 @@ namespace Ostranauts.Bit.SmarterHauling
                             Logger.LogDebug($"  - {category.DisplayName} ({category.Id}): {category.Description}");
                         }
                     }
-                    Logger.LogInfo($"Whitelist system initialized with {categoryCount} categories from bitlib");
+                    Logger.LogInfo($"Preference system initialized with {categoryCount} categories from bitlib");
                 }
                 else
                 {
@@ -101,7 +101,7 @@ namespace Ostranauts.Bit.SmarterHauling
             }
             catch (System.Exception ex)
             {
-                Logger.LogError($"Error initializing whitelist system: {ex.Message}");
+                Logger.LogError($"Error initializing preference system: {ex.Message}");
             }
         }
 
@@ -121,7 +121,7 @@ namespace Ostranauts.Bit.SmarterHauling
                     return;
                 }
 
-                // Create and register the data handler for saving/loading container whitelists
+                // Create and register the data handler for saving/loading container preferences
                 var handler = new SmarterHaulingDataHandler
                 {
                     Logger = Logger
@@ -129,7 +129,7 @@ namespace Ostranauts.Bit.SmarterHauling
 
                 BitLib.Instance.PersistentData.RegisterHandler("smarterhauling", handler);
                 
-                Logger.LogInfo("Registered persistent data handler for container whitelists");
+                Logger.LogInfo("Registered persistent data handler for container preferences");
             }
             catch (System.Exception ex)
             {
@@ -143,7 +143,7 @@ namespace Ostranauts.Bit.SmarterHauling
             try
             {
                 // Register StorageSettingsModule for item tooltips
-                // This module shows whitelist settings on containers
+                // This module shows preference settings on containers
                 // Only show if container is valid, not damaged, and not loose
                 BitLib.RegisterItemModule(typeof(StorageSettingsModule), StorageSettingsModule.SetupUI)
                     .OnlyShowIf(StorageModuleHelper.ShouldShowStorageModule)
