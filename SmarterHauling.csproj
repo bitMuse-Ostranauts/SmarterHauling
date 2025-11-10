@@ -23,18 +23,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- BepInEx and HarmonyX from NuGet -->
+    <!-- BepInEx and Harmony from NuGet -->
     <PackageReference Include="BepInEx.Core" Version="5.*">
-      <IncludeAssets>compile</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="HarmonyX" Version="2.15.0">
       <IncludeAssets>compile</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Harmony from BepInEx installation -->
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExPath)\core\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+
     <!-- LaunchControl dependency - check multiple locations -->
     <!-- 1. Direct project reference (local development) -->
     <ProjectReference Include="..\LaunchControl\LaunchControl.csproj" Condition="Exists('..\LaunchControl\LaunchControl.csproj')">
