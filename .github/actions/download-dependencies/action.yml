@@ -15,10 +15,14 @@ runs:
       run: |
         # Parse dependencies from thunderstore.toml
         # Extract lines between [package.dependencies] and next section
+        # Format: "Namespace-PackageName = \"version\"" -> "Namespace-PackageName-version"
         DEPENDENCIES=$(awk '/\[package\.dependencies\]/,/^\[/ {
           if ($0 ~ /=/ && $0 !~ /^\[/ && $0 !~ /^#/) {
-            gsub(/[ \t]*=[ \t]*/, "-")
+            # Remove spaces and quotes
+            gsub(/[ \t]/, "")
             gsub(/"/, "")
+            # Replace = with -
+            gsub(/=/, "-")
             print
           }
         }' "${{ inputs.thunderstore_path }}")
