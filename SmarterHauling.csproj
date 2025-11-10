@@ -35,13 +35,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- LaunchControl dependency -->
-    <Reference Include="LaunchControl" Condition="Exists('$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll')">
-      <HintPath>$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll</HintPath>
+    <!-- LaunchControl dependency - check multiple locations -->
+    <!-- 1. Direct project reference (local development) -->
+    <ProjectReference Include="..\LaunchControl\LaunchControl.csproj" Condition="Exists('..\LaunchControl\LaunchControl.csproj')">
+      <Private>False</Private>
+    </ProjectReference>
+    
+    <!-- 2. CI downloaded from Thunderstore dependencies -->
+    <Reference Include="LaunchControl" Condition="!Exists('..\LaunchControl\LaunchControl.csproj') AND Exists('vendor\refs\plugins\LaunchControl.dll')">
+      <HintPath>vendor\refs\plugins\LaunchControl.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="LaunchControl" Condition="!Exists('$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll') AND Exists('vendor\refs\plugins\LaunchControl.dll')">
-      <HintPath>vendor\refs\plugins\LaunchControl.dll</HintPath>
+    
+    <!-- 3. Local game install -->
+    <Reference Include="LaunchControl" Condition="!Exists('..\LaunchControl\LaunchControl.csproj') AND !Exists('vendor\refs\plugins\LaunchControl.dll') AND Exists('$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll')">
+      <HintPath>$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll</HintPath>
       <Private>False</Private>
     </Reference>
 
