@@ -28,18 +28,6 @@ runs:
           }
         ' "${{ inputs.thunderstore_path }}")
         
-        echo "DEBUG: DEPENDENCIES variable content:"
-        echo "$DEPENDENCIES"
-        echo "DEBUG: Number of dependencies: $(echo "$DEPENDENCIES" | wc -l)"
-        echo ""
-        
-        if [ -z "$DEPENDENCIES" ]; then
-          echo "ERROR: No dependencies found in ${{ inputs.thunderstore_path }}"
-          echo "Thunderstore.toml content:"
-          cat "${{ inputs.thunderstore_path }}"
-          exit 1
-        fi
-        
         echo "Installing dependencies from Thunderstore..."
         
         # Process each dependency
@@ -56,19 +44,8 @@ runs:
           echo "Downloading: $NAMESPACE/$MODNAME v$VERSION"
           
           # Download from Thunderstore
-          DOWNLOAD_URL="https://thunderstore.io/package/download/${NAMESPACE}/${MODNAME}/${VERSION}/"
-          echo "DEBUG: Download URL: $DOWNLOAD_URL"
-          
-          curl -L -o "${MODNAME}.zip" "$DOWNLOAD_URL"
-          
-          # Check if we got a valid zip file
-          if ! unzip -t "${MODNAME}.zip" > /dev/null 2>&1; then
-            echo "ERROR: Downloaded file is not a valid ZIP. First 500 bytes:"
-            head -c 500 "${MODNAME}.zip"
-            echo ""
-            echo "File size: $(wc -c < "${MODNAME}.zip") bytes"
-            exit 1
-          fi
+          curl -L -o "${MODNAME}.zip" \
+            "https://thunderstore.io/package/download/${NAMESPACE}/${MODNAME}/${VERSION}/"
           
           # Extract to temp directory
           unzip -q "${MODNAME}.zip" -d "temp_${MODNAME}"
