@@ -16,16 +16,17 @@ runs:
         # Parse dependencies from thunderstore.toml
         # Extract lines between [package.dependencies] and next section
         # Format: "Namespace-PackageName = \"version\"" -> "Namespace-PackageName-version"
-        DEPENDENCIES=$(awk '/\[package\.dependencies\]/,/^\[/ {
-          if ($0 ~ /=/ && $0 !~ /^\[/ && $0 !~ /^#/) {
-            # Remove spaces and quotes
+        DEPENDENCIES=$(awk '
+          BEGIN { in_deps = 0 }
+          /^\[package\.dependencies\]/ { in_deps = 1; next }
+          /^\[/ && in_deps { in_deps = 0 }
+          in_deps && /=/ && !/^#/ {
             gsub(/[ \t]/, "")
             gsub(/"/, "")
-            # Replace = with -
             gsub(/=/, "-")
             print
           }
-        }' "${{ inputs.thunderstore_path }}")
+        ' "${{ inputs.thunderstore_path }}")
         
         echo "DEBUG: DEPENDENCIES variable content:"
         echo "$DEPENDENCIES"
