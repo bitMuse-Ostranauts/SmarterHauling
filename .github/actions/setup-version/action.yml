@@ -1,0 +1,72 @@
+name: 'Setup Version and Variables'
+description: 'Determines version number and assemblies filename from inputs or defaults'
+
+inputs:
+  input_version:
+    description: 'Version number from workflow input'
+    required: false
+    default: ''
+  input_assemblies:
+    description: 'Reference assemblies filename from workflow input'
+    required: false
+    default: ''
+  thunderstore_path:
+    description: 'Path to thunderstore.toml'
+    required: false
+    default: 'thunderstore.toml'
+
+outputs:
+  version:
+    description: 'Resolved version number'
+    value: ${{ steps.set_vars.outputs.version }}
+  assemblies:
+    description: 'Resolved assemblies filename'
+    value: ${{ steps.set_vars.outputs.assemblies }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get latest tag
+      id: get_tag
+      shell: bash
+      run: |
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
+        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+    
+    - name: Set version and assemblies
+      id: set_vars
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.input_version }}" ]; then
+          VERSION="${{ steps.get_tag.outputs.latest_tag }}"
+        else
+          VERSION="${{ inputs.input_version }}"
+        fi
+        
+        if [ -z "${{ inputs.input_assemblies }}" ]; then
+          echo "Error: reference_assemblies input is required" >&2
+          exit 1
+        else
+          ASSEMBLIES="${{ inputs.input_assemblies }}"
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "assemblies=$ASSEMBLIES" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+        echo "Using assemblies: $ASSEMBLIES"
+    
+    - name: Update thunderstore.toml version
+      shell: bash
+      run: |
+        VERSION="${{ steps.set_vars.outputs.version }}"
+        TOML_PATH="${{ inputs.thunderstore_path }}"
+
+        if [ ! -f "${TOML_PATH}" ]; then
+          echo "thunderstore.toml not found at ${TOML_PATH}, skipping update"
+          exit 0
+        fi
+
+        # Update versionNumber in thunderstore.toml using sed
+        sed -i "s/versionNumber = \"[^\"]*\"/versionNumber = \"${VERSION}\"/" "${TOML_PATH}"
+        echo "Updated ${TOML_PATH} versionNumber to ${VERSION}"
+

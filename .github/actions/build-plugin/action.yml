@@ -1,0 +1,46 @@
+name: 'Build Plugin'
+description: 'Sets up .NET and builds the plugin project'
+
+inputs:
+  project_file:
+    description: 'Path to the .csproj file'
+    required: true
+  output_dll:
+    description: 'Name of the output DLL file'
+    required: true
+  plugin_name:
+    description: 'Name of the plugin'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Build project
+      shell: bash
+      run: |
+        # Build with reference assemblies from vendor/refs
+        dotnet build "${{ inputs.project_file }}" \
+          -c Release \
+          -p:OstranautsPath="${GITHUB_WORKSPACE}/vendor/refs" \
+          -p:OutputPath="${GITHUB_WORKSPACE}/build/output/" \
+          -p:GenerateTargetFrameworkAttribute=false
+    
+    - name: Create artifact structure
+      shell: bash
+      run: |
+        mkdir -p "artifact/plugins/${{ inputs.plugin_name }}"
+        cp "build/output/${{ inputs.output_dll }}" "artifact/plugins/${{ inputs.plugin_name }}/"
+        echo "Artifact contents:"
+        ls -R artifact/
+    
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.plugin_name }}-${{ github.run_number }}
+        path: artifact/
+

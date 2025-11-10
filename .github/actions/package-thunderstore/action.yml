@@ -1,0 +1,51 @@
+name: 'Package Thunderstore Artifact'
+description: 'Builds a Thunderstore-ready zip using tcli'
+
+inputs:
+  config_path:
+    description: 'Path to thunderstore.toml'
+    required: false
+    default: 'thunderstore.toml'
+  version:
+    description: 'Version number to package'
+    required: true
+  output_dir:
+    description: 'Directory where tcli should place built packages'
+    required: false
+    default: 'dist/thunderstore'
+
+outputs:
+  package_path:
+    description: 'Path to the generated Thunderstore zip'
+    value: ${{ steps.build.outputs.package_path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Prepare output directory
+      shell: bash
+      run: |
+        set -euo pipefail
+        rm -rf "${{ inputs.output_dir }}"
+        mkdir -p "${{ inputs.output_dir }}"
+
+    - name: Build Thunderstore package
+      id: build
+      shell: bash
+      run: |
+        set -euo pipefail
+        tcli build \
+          --config-path "${{ inputs.config_path }}" \
+          --package-version "${{ inputs.version }}"
+
+        PACKAGE_PATH=$(find "${{ inputs.output_dir }}" -maxdepth 1 -type f -name '*.zip' -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2-)
+
+        if [ -z "${PACKAGE_PATH}" ]; then
+          echo "tcli build did not produce a .zip in ${{ inputs.output_dir }}" >&2
+          exit 1
+        fi
+
+        echo "package_path=${PACKAGE_PATH}" >> "$GITHUB_OUTPUT"
+        echo "Thunderstore package created at: ${PACKAGE_PATH}"
+
+

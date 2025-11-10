@@ -1,0 +1,32 @@
+name: 'Create Release'
+description: 'Commits version changes, creates git tag, and pushes to repository'
+
+inputs:
+  version:
+    description: 'Version number for the release'
+    required: true
+  plugin_name:
+    description: 'Name of the plugin'
+    required: true
+  github_token:
+    description: 'GitHub token for authentication'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Commit version update and create tag
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Commit the thunderstore.toml version update
+        git add thunderstore.toml
+        git commit -m "Release v${{ inputs.version }}"
+        
+        # Create and push tag
+        git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+        git push origin HEAD:${{ github.ref }}
+        git push origin "v${{ inputs.version }}"
+

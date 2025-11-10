@@ -1,0 +1,75 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: false
+        default: ''
+      reference_assemblies:
+        description: 'Reference assemblies filename from http://files.bitmuse.me/ (e.g., assemblies-v1.2.3.tar.gz.enc)'
+        required: true
+        default: 'ostranauts-0.14.5.17.tar.gz.enc'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PLUGIN_NAME: SmarterHauling
+      PROJECT_FILE: SmarterHauling.csproj
+      OUTPUT_DLL: SmarterHauling.dll
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup version and variables
+        id: setup
+        uses: ./.github/actions/setup-version
+        with:
+          input_version: ${{ github.event.inputs.version }}
+          input_assemblies: ${{ github.event.inputs.reference_assemblies }}
+          thunderstore_path: thunderstore.toml
+      
+      - name: Download Thunderstore dependencies
+        uses: ./.github/actions/download-dependencies
+        with:
+          thunderstore_path: thunderstore.toml
+      
+      - name: Download and decrypt reference assemblies
+        uses: ./.github/actions/download-assemblies
+        with:
+          assemblies_filename: ${{ steps.setup.outputs.assemblies }}
+          encryption_key: ${{ secrets.ENCRYPTION_KEY }}
+      
+      - name: Build plugin
+        uses: ./.github/actions/build-plugin
+        with:
+          project_file: ${{ env.PROJECT_FILE }}
+          output_dll: ${{ env.OUTPUT_DLL }}
+          plugin_name: ${{ env.PLUGIN_NAME }}
+      
+      - name: Install Thunderstore CLI
+        uses: ./.github/actions/install-tcli
+
+      - name: Package Thunderstore artifact
+        id: thunderstore_package
+        uses: ./.github/actions/package-thunderstore
+        with:
+          config_path: thunderstore.toml
+          version: ${{ steps.setup.outputs.version }}
+
+      - name: Publish to Thunderstore
+        uses: ./.github/actions/publish-thunderstore
+        with:
+          config_path: thunderstore.toml
+          version: ${{ steps.setup.outputs.version }}
+          package_path: ${{ steps.thunderstore_package.outputs.package_path }}
+          token: ${{ secrets.THUNDERSTORE_TOKEN }}

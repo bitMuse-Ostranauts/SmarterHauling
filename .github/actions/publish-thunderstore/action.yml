@@ -1,0 +1,33 @@
+name: 'Publish Thunderstore Package'
+description: 'Publishes a built Thunderstore package using tcli'
+
+inputs:
+  config_path:
+    description: 'Path to thunderstore.toml'
+    required: false
+    default: 'thunderstore.toml'
+  version:
+    description: 'Version number to publish'
+    required: true
+  token:
+    description: 'Thunderstore API token'
+    required: true
+  package_path:
+    description: 'Path to the Thunderstore .zip package'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Publish package
+      shell: bash
+      env:
+        TCLI_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+        tcli publish \
+          --config-path "${{ inputs.config_path }}" \
+          --file "${{ inputs.package_path }}" \
+          --token "${TCLI_TOKEN}"
+
+

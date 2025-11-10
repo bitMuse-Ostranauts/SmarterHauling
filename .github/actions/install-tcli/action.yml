@@ -1,0 +1,14 @@
+name: 'Install Thunderstore CLI'
+description: 'Installs the Thunderstore CLI (tcli) as a global .NET tool'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    - name: Install tcli
+      shell: bash
+      run: dotnet tool install --global tcli
+

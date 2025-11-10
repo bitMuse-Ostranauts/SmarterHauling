@@ -1,0 +1,71 @@
+name: 'Download and Decrypt Assemblies'
+description: 'Downloads encrypted reference assemblies, decrypts them, and organizes them'
+
+inputs:
+  assemblies_filename:
+    description: 'Filename of the encrypted assemblies archive'
+    required: true
+  encryption_key:
+    description: 'Encryption key for decrypting the assemblies'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download reference assemblies
+      shell: bash
+      run: |
+        curl -o reference-assemblies.tar.gz.enc \
+          "http://files.bitmuse.me/${{ inputs.assemblies_filename }}"
+    
+    - name: Decrypt archive
+      shell: bash
+      env:
+        ENCRYPTION_KEY: ${{ inputs.encryption_key }}
+      run: |
+        openssl enc -d -aes-256-cbc -pbkdf2 \
+          -in reference-assemblies.tar.gz.enc \
+          -out reference-assemblies.tar.gz \
+          -pass env:ENCRYPTION_KEY
+    
+    - name: Extract game assemblies
+      shell: bash
+      run: |
+        mkdir -p vendor/refs/extracted
+        tar -xzf reference-assemblies.tar.gz -C vendor/refs/extracted
+        echo "Extracted game assemblies:"
+        find vendor/refs/extracted -type f -name "*.dll" | head -20
+    
+    - name: Organize game assemblies
+      shell: bash
+      run: |
+        # Find where the game DLLs were extracted
+        MANAGED_DIR=$(find vendor/refs/extracted -name "Assembly-CSharp.dll" -exec dirname {} \; | head -1)
+        
+        if [ -z "$MANAGED_DIR" ]; then
+          echo "ERROR: Could not find Assembly-CSharp.dll in extracted files"
+          echo "Searching for DLL files in extracted archive:"
+          find vendor/refs/extracted -name "*.dll" | head -20
+          exit 1
+        fi
+        
+        echo "Found game assemblies in: $MANAGED_DIR"
+        
+        # Create proper directory structure for game assemblies
+        mkdir -p vendor/refs/Ostranauts_Data/Managed
+        
+        # Copy all game and Unity assemblies
+        cp "$MANAGED_DIR"/*.dll vendor/refs/Ostranauts_Data/Managed/
+        
+        echo "Game assemblies installed:"
+        ls -la vendor/refs/Ostranauts_Data/Managed/ | head -20
+        
+        echo ""
+        echo "Complete reference structure:"
+        echo "BepInEx:"
+        ls -la vendor/refs/BepInEx/core/
+        echo ""
+        echo "Game/Unity (first 10):"
+        ls vendor/refs/Ostranauts_Data/Managed/ | head -10
+
+

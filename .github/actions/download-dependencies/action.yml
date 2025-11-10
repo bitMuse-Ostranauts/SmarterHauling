@@ -1,0 +1,72 @@
+name: 'Download Thunderstore Dependencies'
+description: 'Downloads and extracts dependencies from Thunderstore based on thunderstore.toml'
+
+inputs:
+  thunderstore_path:
+    description: 'Path to thunderstore.toml'
+    required: false
+    default: 'thunderstore.toml'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download and extract dependencies
+      shell: bash
+      run: |
+        # Parse dependencies from thunderstore.toml
+        # Extract lines between [package.dependencies] and next section
+        DEPENDENCIES=$(awk '/\[package\.dependencies\]/,/^\[/ {
+          if ($0 ~ /=/ && $0 !~ /^\[/ && $0 !~ /^#/) {
+            gsub(/[ \t]*=[ \t]*/, "-")
+            gsub(/"/, "")
+            print
+          }
+        }' "${{ inputs.thunderstore_path }}")
+        
+        echo "Installing dependencies from Thunderstore..."
+        
+        # Process each dependency
+        for dep in $DEPENDENCIES; do
+          # Parse dependency string: Namespace-ModName-Version
+          NAMESPACE=$(echo $dep | cut -d'-' -f1)
+          MODNAME=$(echo $dep | cut -d'-' -f2)
+          VERSION=$(echo $dep | cut -d'-' -f3)
+          
+          echo ""
+          echo "Downloading: $NAMESPACE/$MODNAME v$VERSION"
+          
+          # Download from Thunderstore
+          curl -L -o "${MODNAME}.zip" \
+            "https://thunderstore.io/package/download/${NAMESPACE}/${MODNAME}/${VERSION}/"
+          
+          # Extract to temp directory
+          unzip -q "${MODNAME}.zip" -d "temp_${MODNAME}"
+          
+          echo "Contents of temp_${MODNAME}:"
+          ls -la "temp_${MODNAME}/" || true
+        done
+        
+        # Create vendor directory structure for references
+        mkdir -p vendor/refs/BepInEx/core
+        
+        # Copy BepInEx assemblies (if present)
+        if [ -d "temp_BepInExPack_Ostranauts/BepInExPack/BepInEx/core" ]; then
+          cp temp_BepInExPack_Ostranauts/BepInExPack/BepInEx/core/*.dll vendor/refs/BepInEx/core/
+          echo "BepInEx assemblies installed:"
+          ls -la vendor/refs/BepInEx/core/
+        fi
+        
+        # Copy any other mod DLLs to a plugins reference directory
+        mkdir -p vendor/refs/plugins
+        for dep in $DEPENDENCIES; do
+          MODNAME=$(echo $dep | cut -d'-' -f2)
+          # Look for DLL files in common locations
+          find "temp_${MODNAME}" -name "*.dll" -type f -exec cp {} vendor/refs/plugins/ \; 2>/dev/null || true
+        done
+        
+        if [ -d "vendor/refs/plugins" ] && [ "$(ls -A vendor/refs/plugins)" ]; then
+          echo ""
+          echo "Plugin dependencies installed:"
+          ls -la vendor/refs/plugins/
+        fi
+
