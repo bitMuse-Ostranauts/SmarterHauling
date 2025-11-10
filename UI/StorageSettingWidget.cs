@@ -274,7 +274,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             // Making a sample category
             // Create category widget
             // Iterate over top-level categories
-            var rootCategories = BitLib.Instance.Items.Categories.GetRootCategories();
+            var rootCategories = LaunchControl.Instance.Items.Categories.GetRootCategories();
             foreach (var category in rootCategories)
             {
                 // Skip empty root categories
@@ -871,7 +871,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             
             // Determine if this is a category or an item by checking if it exists in the category manager
             string firstId = widget.CategoryIds[0];
-            var category = BitLib.Instance?.Items?.Categories?.GetCategory(firstId);
+            var category = LaunchControl.Instance?.Items?.Categories?.GetCategory(firstId);
             bool isCategory = category != null;
             
             Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogInfo($"[HandleCategoryToggle] Widget type: {(isCategory ? "Category" : "Item")}");
@@ -945,7 +945,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
                 prefs.AddCategory(categoryId);
                 
                 // Get the category from ItemCategoryManager
-                var category = BitLib.Instance?.Items?.Categories?.GetCategory(categoryId);
+                var category = LaunchControl.Instance?.Items?.Categories?.GetCategory(categoryId);
                 if (category != null)
                 {
                     // Add all items from this category
@@ -989,7 +989,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
                 prefs.RemoveCategory(categoryId);
                 
                 // Get the category from ItemCategoryManager
-                var category = BitLib.Instance?.Items?.Categories?.GetCategory(categoryId);
+                var category = LaunchControl.Instance?.Items?.Categories?.GetCategory(categoryId);
                 if (category != null)
                 {
                     // Remove all items from this category
@@ -1031,7 +1031,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogInfo($"[RefreshAllToggleStatuses] Total widgets: {_storagePrefListItems.Count}");
             
             // Get the storage prefs using the container ID directly
-            var prefs = ContainerExtensions.GetWhitelistById(_coTarget.strID);
+            var prefs = ContainerExtensions.GetPrefsById(_coTarget.strID);
             
             if (prefs != null)
             {
@@ -1130,7 +1130,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
                 result.Add(categoryId);
                 
                 // Get the category from ItemCategoryManager
-                var category = BitLib.Instance?.Items?.Categories?.GetCategory(categoryId);
+                var category = LaunchControl.Instance?.Items?.Categories?.GetCategory(categoryId);
                 if (category != null)
                 {
                     // Add all item IDs from this category

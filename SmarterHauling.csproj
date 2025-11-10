@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net40</TargetFramework>
+    <TargetFramework>net35</TargetFramework>
     <AssemblyName>SmarterHauling</AssemblyName>
     <RootNamespace>Ostranauts.Bit.SmarterHauling</RootNamespace>
     <LangVersion>7.3</LangVersion>
@@ -9,7 +9,11 @@
     <DebugType>embedded</DebugType>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     
-    <!-- Ostranauts installation directory -->
+    <!-- Ostranauts installation directory - tries common Steam locations -->
+    <OstranautsPath Condition="'$(OstranautsPath)' == '' AND Exists('D:\Steam\steamapps\common\Ostranauts')">D:\Steam\steamapps\common\Ostranauts</OstranautsPath>
+    <OstranautsPath Condition="'$(OstranautsPath)' == '' AND Exists('C:\Steam\steamapps\common\Ostranauts')">C:\Steam\steamapps\common\Ostranauts</OstranautsPath>
+    <OstranautsPath Condition="'$(OstranautsPath)' == '' AND Exists('C:\Program Files (x86)\Steam\steamapps\common\Ostranauts')">C:\Program Files (x86)\Steam\steamapps\common\Ostranauts</OstranautsPath>
+    <OstranautsPath Condition="'$(OstranautsPath)' == '' AND Exists('$(USERPROFILE)\.steam\steam\steamapps\common\Ostranauts')">$(USERPROFILE)\.steam\steam\steamapps\common\Ostranauts</OstranautsPath>
     <OstranautsPath Condition="'$(OstranautsPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Ostranauts</OstranautsPath>
     <GameManagedPath>$(OstranautsPath)\Ostranauts_Data\Managed</GameManagedPath>
     <BepInExPath>$(OstranautsPath)\BepInEx</BepInExPath>
@@ -19,13 +23,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- BepInEx References -->
-    <Reference Include="BepInEx">
-      <HintPath>$(BepInExPath)\core\BepInEx.dll</HintPath>
+    <!-- BepInEx and HarmonyX from NuGet -->
+    <PackageReference Include="BepInEx.Core" Version="5.*">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="HarmonyX" Version="2.15.0">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- LaunchControl dependency -->
+    <Reference Include="LaunchControl" Condition="Exists('$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll')">
+      <HintPath>$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>$(BepInExPath)\core\0Harmony.dll</HintPath>
+    <Reference Include="LaunchControl" Condition="!Exists('$(BepInExPath)\plugins\LaunchControl\LaunchControl.dll') AND Exists('vendor\refs\plugins\LaunchControl.dll')">
+      <HintPath>vendor\refs\plugins\LaunchControl.dll</HintPath>
       <Private>False</Private>
     </Reference>
 
@@ -43,26 +59,26 @@
       <HintPath>$(GameManagedPath)\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GameManagedPath)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>$(GameManagedPath)\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(GameManagedPath)\UnityEngine.UIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(GameManagedPath)\UnityEngine.IMGUIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TextMeshPro">
       <HintPath>$(GameManagedPath)\TextMeshPro-5.6-Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
-  </ItemGroup>
-
-  <!-- Include Shared utilities -->
-  <ItemGroup>
-    <Compile Include="..\..\Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
-  </ItemGroup>
-
-  <!-- Project References -->
-  <ItemGroup>
-    <ProjectReference Include="..\bitlib\bitlib.csproj">
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
 </Project>
 

@@ -80,9 +80,9 @@ namespace Ostranauts.Bit.SmarterHauling
             try
             {
                 // Log available categories from bitlib's category system
-                if (BitLib.Instance?.Items?.Categories != null)
+                if (LaunchControl.Instance?.Items?.Categories != null)
                 {
-                    var categories = BitLib.Instance.Items.Categories.GetAllCategories();
+                    var categories = LaunchControl.Instance.Items.Categories.GetAllCategories();
                     int categoryCount = 0;
                     foreach (var category in categories)
                     {
@@ -109,15 +109,15 @@ namespace Ostranauts.Bit.SmarterHauling
         {
             try
             {
-                if (BitLib.Instance == null)
+                if (LaunchControl.Instance == null)
                 {
-                    Logger.LogError("BitLib.Instance is null, cannot register persistent data handler");
+                    Logger.LogError("LaunchControl.Instance is null, cannot register persistent data handler");
                     return;
                 }
 
-                if (BitLib.Instance.PersistentData == null)
+                if (LaunchControl.Instance.PersistentData == null)
                 {
-                    Logger.LogError("BitLib.Instance.PersistentData is null, cannot register handler");
+                    Logger.LogError("LaunchControl.Instance.PersistentData is null, cannot register handler");
                     return;
                 }
 
@@ -127,7 +127,7 @@ namespace Ostranauts.Bit.SmarterHauling
                     Logger = Logger
                 };
 
-                BitLib.Instance.PersistentData.RegisterHandler("smarterhauling", handler);
+                LaunchControl.Instance.PersistentData.RegisterHandler("smarterhauling", handler);
                 
                 Logger.LogInfo("Registered persistent data handler for container preferences");
             }
@@ -145,7 +145,7 @@ namespace Ostranauts.Bit.SmarterHauling
                 // Register StorageSettingsModule for item tooltips
                 // This module shows preference settings on containers
                 // Only show if container is valid, not damaged, and not loose
-                BitLib.RegisterItemModule(typeof(StorageSettingsModule), StorageSettingsModule.SetupUI)
+                LaunchControl.RegisterItemModule(typeof(StorageSettingsModule), StorageSettingsModule.SetupUI)
                     .OnlyShowIf(StorageModuleHelper.ShouldShowStorageModule)
                     .InsertAfter("ValueModule");
 
@@ -162,14 +162,14 @@ namespace Ostranauts.Bit.SmarterHauling
         {
             try
             {
-                if (BitLib.Instance == null || BitLib.Instance.Interactions == null)
+                if (LaunchControl.Instance == null || LaunchControl.Instance.Interactions == null)
                 {
                     Logger.LogError("BitLib interactions not available, cannot register effects");
                     return;
                 }
 
                 // Register ContainerDropEffect to handle smart container drops
-                BitLib.Instance.Interactions.RegisterEffect(new ContainerDropEffect());
+                LaunchControl.Instance.Interactions.RegisterEffect(new ContainerDropEffect());
 
                 Logger.LogInfo("Registered ContainerDropEffect with BitLib Interactions system");
             }
@@ -184,7 +184,7 @@ namespace Ostranauts.Bit.SmarterHauling
         {
             try
             {
-                if (BitLib.Instance == null || BitLib.Instance.Commands == null)
+                if (LaunchControl.Instance == null || LaunchControl.Instance.Commands == null)
                 {
                     Logger.LogError("BitLib commands not available, cannot register commands");
                     return;

@@ -48,7 +48,7 @@ namespace Ostranauts.Bit.SmarterHauling.Data
             }
 
             // Verify category exists in ItemCategoryManager
-            if (BitLib.Instance?.Items?.Categories?.GetCategory(categoryId) == null)
+            if (LaunchControl.Instance?.Items?.Categories?.GetCategory(categoryId) == null)
             {
                 return;
             }
@@ -174,7 +174,7 @@ namespace Ostranauts.Bit.SmarterHauling.Data
                 return false; // Empty preference list allows nothing
             }
 
-            var categoryManager = BitLib.Instance?.Items?.Categories;
+            var categoryManager = LaunchControl.Instance?.Items?.Categories;
             if (categoryManager == null)
             {
                 return false;

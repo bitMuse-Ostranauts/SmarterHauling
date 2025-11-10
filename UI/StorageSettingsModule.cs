@@ -290,7 +290,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             {
                 // Show the single category name
                 string categoryId = prefs.AllowedCategories[0];
-                var category = BitLib.Instance?.Items?.Categories?.GetCategory(categoryId);
+                var category = LaunchControl.Instance?.Items?.Categories?.GetCategory(categoryId);
                 if (category != null)
                 {
                     _chipText.text = category.DisplayName;
@@ -356,7 +356,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
                 return string.Empty;
             }
 
-            ContainerStoragePrefs prefs = container.GetWhitelist();
+            ContainerStoragePrefs prefs = container.GetPrefs();
             string itemName = _condOwner.strName;
 
             if (prefs == null || prefs.AllowedCategories == null || prefs.AllowedCategories.Count == 0)
@@ -367,7 +367,7 @@ namespace Ostranauts.Bit.SmarterHauling.UI
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             sb.AppendFormat("The {0} is set to store:\n\n", itemName);
 
-            var categoryManager = BitLib.Instance?.Items?.Categories;
+            var categoryManager = LaunchControl.Instance?.Items?.Categories;
             int count = System.Math.Min(10, prefs.AllowedCategories.Count);
             for (int i = 0; i < count; i++)
             {

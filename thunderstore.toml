@@ -11,7 +11,7 @@ containsNsfwContent = false
 
 [package.dependencies]
 BepInEx-BepInExPack_Ostranauts = "5.4.2303"
-bitMods-LaunchControl-1.0.2 = "1.0.2"
+bitMods-LaunchControl = "1.0.2"
 
 [build]
 icon = "./icon.png"

@@ -14,7 +14,7 @@ namespace Ostranauts.Bit.SmarterHauling.Commands
         private void Start()
         {
             // Register the searchitems command
-            BitLib.Instance.Commands.RegisterCommand("searchitems", OnSearchItemsCommand);
+            LaunchControl.Instance.Commands.RegisterCommand("searchitems", OnSearchItemsCommand);
             SmarterHaulingPlugin.Logger.LogInfo("SearchItems command registered");
         }
 
@@ -330,12 +330,12 @@ namespace Ostranauts.Bit.SmarterHauling.Commands
             try
             {
                 // Check if item is in any categories
-                if (BitLib.Instance?.Items?.Categories == null)
+                if (LaunchControl.Instance?.Items?.Categories == null)
                 {
                     return "";
                 }
 
-                var categoryManager = BitLib.Instance.Items.Categories;
+                var categoryManager = LaunchControl.Instance.Items.Categories;
                 var categories = categoryManager.GetAllCategories();
                 
                 List<string> categoryNames = new List<string>();
