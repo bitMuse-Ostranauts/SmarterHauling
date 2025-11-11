@@ -38,26 +38,42 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
             return false;
         }
 
-        public static Container FindBestHaulDestination(CondOwner item, Ship ship, CondOwner character)
+        public static Container FindBestHaulDestination(CondOwner item, Ship ship)
         {
             if (item == null || ship == null)
             {
+                SmarterHaulingPlugin.Logger.LogWarning($"[FindBestHaulDestination] Null parameters - item:{item != null}, ship:{ship != null}");
                 return null;
             }
+
+            SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] Searching for container for item: {item.strNameFriendly} (def:{item.strCODef})");
 
             List<CondOwner> allCOs = ship.GetCOs(null, true, false, true);
             
             if (allCOs == null || allCOs.Count == 0)
             {
+                SmarterHaulingPlugin.Logger.LogWarning($"[FindBestHaulDestination] No COs found on ship");
                 return null;
             }
 
+            SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] Checking {allCOs.Count} potential containers");
+
             List<Container> matchingContainers = new List<Container>();
+            int checkedCount = 0;
+            int carriedCount = 0;
+            int hiddenCount = 0;
+            int noContainerCount = 0;
+            int noPrefsCount = 0;
+            int notAllowedCount = 0;
+            int fullCount = 0;
 
             foreach (CondOwner co in allCOs)
             {
+                checkedCount++;
+                
                 if (co.HasCond("IsCarried"))
                 {
+                    carriedCount++;
                     continue;
                 }
                 
@@ -65,26 +81,20 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                 // This checks for container existence, damaged state, and loose state
                 if (!StorageModuleHelper.ShouldShowStorageModule(co))
                 {
+                    hiddenCount++;
                     continue;
                 }
                 
                 Container container = co.objContainer;
                 if (container == null)
                 {
+                    noContainerCount++;
                     continue;
                 }
 
-                // Check line of sight - character must be able to see the container
-                if (character != null && !Visibility.IsCondOwnerLOSVisible(character, co))
-                {
-                    if (SmarterHaulingPlugin.EnableDebugLogging)
-                    {
-                        SmarterHaulingPlugin.Logger.LogDebug(
-                            $"[ContainerPrefs] Skipping container {co.strNameFriendly} - no line of sight from {character.strNameFriendly}"
-                        );
-                    }
-                    continue;
-                }
+                // Note: We don't check LOS from character's current position here because
+                // the character will walk to a tile adjacent to the container.
+                // LOS will be checked from the destination tile in ContainerDropEffect.
 
                 ContainerStoragePrefs prefs = container.GetPrefs();
                 
@@ -92,6 +102,8 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                 {
                     if (prefs.IsItemAllowed(item))
                     {
+                        SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] Container {co.strNameFriendly} allows item {item.strNameFriendly}");
+                        
                         // Check if the item can stack with existing items in the container
                         bool canAcceptItem = false;
                         
@@ -104,10 +116,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                                 if (existingItem.CanStackOnItem(item) > 0)
                                 {
                                     canAcceptItem = true;
-                                    if (SmarterHaulingPlugin.EnableDebugLogging)
-                                    {
-                                        SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Container {co.strNameFriendly} can stack with existing item");
-                                    }
+                                    SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] Container {co.strNameFriendly} can stack with existing item");
                                     break;
                                 }
                             }
@@ -117,31 +126,41 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                         if (!canAcceptItem && container.CanFit(item, true, false))
                         {
                             canAcceptItem = true;
-                            if (SmarterHaulingPlugin.EnableDebugLogging)
-                            {
-                                SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Container {co.strNameFriendly} has empty space");
-                            }
+                            SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] Container {co.strNameFriendly} has empty space");
                         }
                         
                         if (canAcceptItem)
                         {
                             matchingContainers.Add(container);
-                            
-                            if (SmarterHaulingPlugin.EnableDebugLogging)
-                            {
-                                SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Found match: {co.strNameFriendly}");
-                            }
+                            SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] ✓ MATCH: {co.strNameFriendly}");
                         }
                         else
                         {
-                            if (SmarterHaulingPlugin.EnableDebugLogging)
-                            {
-                                SmarterHaulingPlugin.Logger.LogDebug($"[ContainerPrefs] Container {co.strNameFriendly} matches preferences but cannot accept item (full and no stacking)");
-                            }
+                            fullCount++;
+                            SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] Container {co.strNameFriendly} matches preferences but is FULL (no space and no stacking)");
                         }
                     }
+                    else
+                    {
+                        notAllowedCount++;
+                    }
+                }
+                else
+                {
+                    noPrefsCount++;
                 }
             }
+            
+            // Log summary
+            SmarterHaulingPlugin.Logger.LogInfo($"[FindBestHaulDestination] Summary for {item.strNameFriendly}:");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - Total COs checked: {checkedCount}");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - Carried: {carriedCount}");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - Hidden (damaged/loose/locked/etc): {hiddenCount}");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - No container component: {noContainerCount}");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - No preferences set: {noPrefsCount}");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - Item not allowed by prefs: {notAllowedCount}");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - Container full: {fullCount}");
+            SmarterHaulingPlugin.Logger.LogInfo($"  - Matching containers: {matchingContainers.Count}");
 
             if (matchingContainers.Count > 0)
             {
@@ -205,7 +224,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
             SmarterHaulingPlugin.Logger.LogInfo($"[HaulZone_Prefix] Current task.nTile={task.nTile}, task.strTileShip={task.strTileShip}");
 
             // Check if we have a container with preferences that wants this item
-            Container bestContainer = FindBestHaulDestination(coTarget, coHauler.ship, coHauler);
+            Container bestContainer = FindBestHaulDestination(coTarget, coHauler.ship);
             
             if (bestContainer != null && bestContainer.CO != null)
             {
