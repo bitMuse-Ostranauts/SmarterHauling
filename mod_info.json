@@ -1,0 +1,10 @@
+[
+    {
+      "strName": "Smarter Hauling",
+      "strAuthor": "bitMuse",
+      "strModURL": "https://github.com/bitMuse-Ostranauts/SmarterHauling",
+      "strGameVersion": "0.14.5.17",
+      "strModVersion": "1.0",
+      "strNotes": "Optimize how characters store and haul items; including telling characters to haul specific items to specific containers or racks."
+    }
+  ]

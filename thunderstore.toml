@@ -17,13 +17,22 @@ bitMods-LaunchControl = "1.0.3"
 icon = "./icon.png"
 readme = "./README.md"
 outdir = "./dist/thunderstore"
-copyPaths = [
-    { from = "./CHANGELOG.md", to = "." }
-]
 
 [[build.copy]]
 source = "./artifact"
 target = ""
+
+[[build.copy]]
+source = "CHANGELOG.md"
+target = "./CHANGELOG.md"
+
+[[build.copy]]
+source = "mod_info.json"
+target = "./plugins/SmarterHauling/mod_info.json"
+
+[[build.copy]]
+source = "Autoload.Meta.toml"
+target = "./plugins/SmarterHauling/Autoload.Meta.toml"
 
 [publish]
 repository = "https://thunderstore.io"
