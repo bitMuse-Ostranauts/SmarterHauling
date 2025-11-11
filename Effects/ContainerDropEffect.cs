@@ -220,6 +220,19 @@ namespace Ostranauts.Bit.SmarterHauling.Effects
                     return new EffectResult(true);
                 }
 
+                // Check line of sight - character must be able to see the container
+                if (!Visibility.IsCondOwnerLOSVisible(character, containerCO))
+                {
+                    if (SmarterHaulingPlugin.EnableDebugLogging)
+                    {
+                        SmarterHaulingPlugin.Logger.LogDebug(
+                            $"[ContainerDropEffect] No line of sight from {character.strNameFriendly} to {containerCO.strNameFriendly}, cancelling job"
+                        );
+                    }
+                    _activeHaulJobs.Remove(character.strID);
+                    return new EffectResult(true);
+                }
+
                 // Verify item is still allowed (container settings might have changed)
                 var prefs = targetContainer.GetPrefs();
                 if (prefs != null && !prefs.IsItemAllowed(item))

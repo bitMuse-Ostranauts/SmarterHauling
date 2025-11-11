@@ -38,7 +38,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
             return false;
         }
 
-        public static Container FindBestHaulDestination(CondOwner item, Ship ship)
+        public static Container FindBestHaulDestination(CondOwner item, Ship ship, CondOwner character)
         {
             if (item == null || ship == null)
             {
@@ -71,6 +71,18 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
                 Container container = co.objContainer;
                 if (container == null)
                 {
+                    continue;
+                }
+
+                // Check line of sight - character must be able to see the container
+                if (character != null && !Visibility.IsCondOwnerLOSVisible(character, co))
+                {
+                    if (SmarterHaulingPlugin.EnableDebugLogging)
+                    {
+                        SmarterHaulingPlugin.Logger.LogDebug(
+                            $"[ContainerPrefs] Skipping container {co.strNameFriendly} - no line of sight from {character.strNameFriendly}"
+                        );
+                    }
                     continue;
                 }
 
@@ -193,7 +205,7 @@ namespace Ostranauts.Bit.SmarterHauling.Patches
             SmarterHaulingPlugin.Logger.LogInfo($"[HaulZone_Prefix] Current task.nTile={task.nTile}, task.strTileShip={task.strTileShip}");
 
             // Check if we have a container with preferences that wants this item
-            Container bestContainer = FindBestHaulDestination(coTarget, coHauler.ship);
+            Container bestContainer = FindBestHaulDestination(coTarget, coHauler.ship, coHauler);
             
             if (bestContainer != null && bestContainer.CO != null)
             {
