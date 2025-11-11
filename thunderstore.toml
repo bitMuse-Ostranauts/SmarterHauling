@@ -17,6 +17,9 @@ bitMods-LaunchControl = "1.0.3"
 icon = "./icon.png"
 readme = "./README.md"
 outdir = "./dist/thunderstore"
+copyPaths = [
+    { from = "./CHANGELOG.md", to = "." }
+]
 
 [[build.copy]]
 source = "./artifact"
