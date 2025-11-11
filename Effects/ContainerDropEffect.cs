@@ -229,6 +229,14 @@ namespace Ostranauts.Bit.SmarterHauling.Effects
                             $"[ContainerDropEffect] No line of sight from {character.strNameFriendly} to {containerCO.strNameFriendly}, cancelling job"
                         );
                     }
+                    
+                    // Add in-game message
+                    character.LogMessage(
+                        $"{character.strNameFriendly} cannot reach {containerCO.strNameFriendly}.",
+                        "Bad",
+                        character.strName
+                    );
+                    
                     _activeHaulJobs.Remove(character.strID);
                     return new EffectResult(true);
                 }
