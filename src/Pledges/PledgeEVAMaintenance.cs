@@ -133,8 +133,8 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
                 return false;
             }
 
-            // Check for combat
-            if (base.Us.HasCond("IsInCombat"))
+            // Check for combat or if busy with another interaction
+            if (base.Us.HasCond("IsInCombat") || base.Us.GetInteractionCurrent() != null)
             {
                 return false;
             }
