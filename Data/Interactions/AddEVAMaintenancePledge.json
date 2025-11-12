@@ -1,8 +1,0 @@
-{
-  "strName": "AddEVAMaintenancePledge",
-  "strDesc": "Adds EVA maintenance pledge to character",
-  "strPledgeAdd": "PSPledgeEVAMaintenance",
-  "bApplyChain": true,
-  "fDuration": 0.0
-}
-
