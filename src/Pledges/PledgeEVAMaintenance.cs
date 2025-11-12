@@ -15,6 +15,7 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
         private const double NORMAL_THRESHOLD = 0.25; // 25%
         private const double EMERGENCY_THRESHOLD = 0.05; // 5%
         private const double REPLACEMENT_MIN_THRESHOLD = 0.50; // 50% - minimum for replacement items
+        private const double COOLDOWN_TIME = 30.0; // Check every 30 seconds
 
         // Condition triggers (cached for performance)
         private CondTrigger _ctEVAOn;
@@ -26,6 +27,9 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
         // Emergency tracking
         private bool _batteryEmergency = false;
         private bool _o2Emergency = false;
+        
+        // Cooldown tracking
+        private double _lastCheckTime = -1000.0;
 
         protected override CondTrigger EmergencyConditions
         {
@@ -129,8 +133,8 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
                 return false;
             }
 
-            // Check for cooldown
-            if (base.Us.HasCond("IsSeekEVAMaintenanceCooldown") || base.Us.HasCond("IsInCombat"))
+            // Check for combat
+            if (base.Us.HasCond("IsInCombat"))
             {
                 return false;
             }
@@ -141,8 +145,14 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
                 return false;
             }
 
-            // Add cooldown
-            base.Us.AddCondAmount("IsSeekEVAMaintenanceCooldown", 1.0, 0.0, 0f);
+            // Check cooldown timer (only check every 30 seconds)
+            double currentTime = StarSystem.fEpoch;
+            if (currentTime - _lastCheckTime < COOLDOWN_TIME)
+            {
+                return false;
+            }
+            
+            _lastCheckTime = currentTime;
 
             // Check current battery and O2 levels
             CheckEVALevels(out double batteryPercent, out double o2Percent);
@@ -259,12 +269,8 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
                 // Check for battery
                 if (CtEVABattery.Triggered(component, null, false))
                 {
+                    // Use StatPowerMax directly to avoid triggering Powered component updates
                     double powerMax = component.GetCondAmount("StatPowerMax");
-                    Powered powered = component.GetComponent<Powered>();
-                    if (powered != null)
-                    {
-                        powerMax = powered.PowerStoredMax;
-                    }
                     
                     if (powerMax > 0)
                     {
@@ -331,13 +337,8 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
                         if (!IsValidReplacement(battery))
                             continue;
 
-                        // Check battery charge level
+                        // Check battery charge level (use StatPowerMax to avoid triggering updates)
                         double powerMax = battery.GetCondAmount("StatPowerMax");
-                        Powered powered = battery.GetComponent<Powered>();
-                        if (powered != null)
-                        {
-                            powerMax = powered.PowerStoredMax;
-                        }
 
                         if (powerMax > 0)
                         {
