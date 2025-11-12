@@ -12,6 +12,7 @@ containsNsfwContent = false
 [package.dependencies]
 BepInEx-BepInExPack_Ostranauts = "5.4.2303"
 bitMods-LaunchControl = "1.0.3"
+Robyn-OstraAutoloader = "0.1.10"
 
 [build]
 icon = "./icon.png"
@@ -35,16 +36,28 @@ source = "Autoload.Meta.toml"
 target = "./plugins/SmarterHauling/Autoload.Meta.toml"
 
 [[build.copy]]
-source = "Data/Pledges/PledgeEVAMaintenance.json"
-target = "./plugins/SmarterHauling/Data/Pledges/PledgeEVAMaintenance.json"
+source = "data/Pledges/PledgeEVAMaintenance.json"
+target = "./plugins/SmarterHauling/data/Pledges/PledgeEVAMaintenance.json"
 
 [[build.copy]]
-source = "Data/Interactions/SeekEVABattery.json"
-target = "./plugins/SmarterHauling/Data/Interactions/SeekEVABattery.json"
+source = "data/Interactions/AddEVAMaintenancePledge.json"
+target = "./plugins/SmarterHauling/data/Interactions/AddEVAMaintenancePledge.json"
 
 [[build.copy]]
-source = "Data/Interactions/SeekEVAO2.json"
-target = "./plugins/SmarterHauling/Data/Interactions/SeekEVAO2.json"
+source = "data/Interactions/SeekEVABattery.json"
+target = "./plugins/SmarterHauling/data/Interactions/SeekEVABattery.json"
+
+[[build.copy]]
+source = "data/Interactions/SeekEVAO2.json"
+target = "./plugins/SmarterHauling/data/Interactions/SeekEVAO2.json"
+
+[[build.copy]]
+source = "data/loot/001-add-eva-pledge-to-npcs.patch"
+target = "./plugins/SmarterHauling/data/loot/001-add-eva-pledge-to-npcs.patch"
+
+[[build.copy]]
+source = "data/loot/002-add-eva-pledge-to-player.patch"
+target = "./plugins/SmarterHauling/data/loot/002-add-eva-pledge-to-player.patch"
 
 [publish]
 repository = "https://thunderstore.io"

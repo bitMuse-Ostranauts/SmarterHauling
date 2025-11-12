@@ -1,0 +1,13 @@
+{
+  "target": {
+    "strName": "PSPIAAddNPCBasic"
+  },
+  "operations": [
+    {
+      "op": "append",
+      "field": "aCOs",
+      "value": "AddEVAMaintenancePledge=1.0x1"
+    }
+  ]
+}
+

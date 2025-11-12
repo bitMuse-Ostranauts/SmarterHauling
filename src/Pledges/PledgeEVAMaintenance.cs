@@ -462,23 +462,23 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
                 return false;
             }
 
-            CondOwner room = tile.room;
+            Room room = tile.room;
 
             // Check for safe oxygen levels
-            if (!room.HasCond("DcGasPpO2"))
+            if (!room.CO.HasCond("DcGasPpO2"))
             {
                 return false;
             }
 
             // Check for dangerous gases
-            if (room.HasCond("DcGasPpCO2") || room.HasCond("DcGasPpH2SO4") || 
-                room.HasCond("DcGasPpCH4") || room.HasCond("DcGasPpNH3"))
+            if (room.CO.HasCond("DcGasPpCO2") || room.CO.HasCond("DcGasPpH2SO4") || 
+                room.CO.HasCond("DcGasPpCH4") || room.CO.HasCond("DcGasPpNH3"))
             {
                 return false;
             }
 
             // Check temperature
-            if (!room.HasCond("DcGasTemp02"))
+            if (!room.CO.HasCond("DcGasTemp02"))
             {
                 return false;
             }

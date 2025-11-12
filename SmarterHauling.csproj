@@ -9,6 +9,10 @@
     <DebugType>embedded</DebugType>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     
+    <!-- Disable default items since we have custom folder structure -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    
     <!-- Ostranauts installation directory - tries common Steam locations -->
     <OstranautsPath Condition="'$(OstranautsPath)' == '' AND Exists('D:\Steam\steamapps\common\Ostranauts')">D:\Steam\steamapps\common\Ostranauts</OstranautsPath>
     <OstranautsPath Condition="'$(OstranautsPath)' == '' AND Exists('C:\Steam\steamapps\common\Ostranauts')">C:\Steam\steamapps\common\Ostranauts</OstranautsPath>
@@ -89,6 +93,11 @@
       <HintPath>$(GameManagedPath)\TextMeshPro-5.6-Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Source files in src/ folder -->
+    <Compile Include="src\**\*.cs" />
   </ItemGroup>
 </Project>
 
