@@ -51,6 +51,9 @@ namespace Ostranauts.Bit.SmarterHauling
             // Register console commands
             RegisterCommands();
 
+            // Register custom pledge types
+            RegisterPledgeTypes();
+
             // Apply Harmony patches (excludes MegaToolTipPatches - now handled by BitLib)
             _harmony = new Harmony(PluginInfo.PLUGIN_GUID);
             _harmony.PatchAll(typeof(SmarterHaulingPlugin).Assembly);
@@ -202,6 +205,35 @@ namespace Ostranauts.Bit.SmarterHauling
             catch (System.Exception ex)
             {
                 Logger.LogError($"Error registering commands: {ex.Message}");
+                Logger.LogError(ex.StackTrace);
+            }
+        }
+
+        private void RegisterPledgeTypes()
+        {
+            try
+            {
+                if (LaunchControl.Instance == null || LaunchControl.Instance.Pledges == null)
+                {
+                    Logger.LogError("LaunchControl pledge system not available");
+                    return;
+                }
+
+                // Register EVA Maintenance pledge
+                bool success = LaunchControl.RegisterPledgeType("evamaintenance", typeof(Pledges.PledgeEVAMaintenance));
+                
+                if (success)
+                {
+                    Logger.LogInfo("Registered custom pledge types: EVA Maintenance");
+                }
+                else
+                {
+                    Logger.LogError("Failed to register EVA Maintenance pledge type");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError($"Error registering pledge types: {ex.Message}");
                 Logger.LogError(ex.StackTrace);
             }
         }

@@ -34,6 +34,18 @@ target = "./plugins/SmarterHauling/mod_info.json"
 source = "Autoload.Meta.toml"
 target = "./plugins/SmarterHauling/Autoload.Meta.toml"
 
+[[build.copy]]
+source = "Data/Pledges/PledgeEVAMaintenance.json"
+target = "./plugins/SmarterHauling/Data/Pledges/PledgeEVAMaintenance.json"
+
+[[build.copy]]
+source = "Data/Interactions/SeekEVABattery.json"
+target = "./plugins/SmarterHauling/Data/Interactions/SeekEVABattery.json"
+
+[[build.copy]]
+source = "Data/Interactions/SeekEVAO2.json"
+target = "./plugins/SmarterHauling/Data/Interactions/SeekEVAO2.json"
+
 [publish]
 repository = "https://thunderstore.io"
 communities = ["ostranauts"]

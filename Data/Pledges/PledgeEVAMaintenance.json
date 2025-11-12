@@ -1,0 +1,15 @@
+{
+  "strName": "PledgeEVAMaintenance",
+  "strType": "evamaintenance",
+  "strNameFriendly": "EVA Maintenance",
+  "strIATrigger": "",
+  "strIAEmergency": "",
+  "aIAEnd": [],
+  "nPriority": 400,
+  "bPlayerOnly": false,
+  "bNPCOnly": false,
+  "bCommandNegates": true,
+  "bPlayerKnowledgeOnly": false,
+  "bThemAllowDocked": true
+}
+

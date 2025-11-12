@@ -1,0 +1,21 @@
+{
+  "strName": "SeekEVAO2",
+  "strNameFriendly": "Swap EVA O2 Bottle",
+  "strDesc": "Swap depleted EVA suit O2 bottle with a full one",
+  "strTargetPoint": "use",
+  "strIAChainStart": "PickupItemStack",
+  "bApplyChain": true,
+  "bPause": false,
+  "bAllowDocked": true,
+  "bThemAllowDocked": true,
+  "bAllowEVA": true,
+  "bAllowPressureSuit": true,
+  "bPlayerKnowledgeOnly": false,
+  "bCommandNegates": false,
+  "nPriority": 0,
+  "fDuration": 0.0,
+  "aTriggerUs": [],
+  "aTriggerThem": [],
+  "aChain": []
+}
+
