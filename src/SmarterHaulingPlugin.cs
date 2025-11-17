@@ -65,24 +65,38 @@ namespace Ostranauts.Bit.SmarterHauling
         }
 
         /// <summary>
-        /// Called when the game has finished loading. Ensures EVA maintenance pledge is added to all characters.
+        /// Called when the game has finished loading. Ensures EVA maintenance pledges are added to all characters.
         /// </summary>
         private void OnGameReady()
         {
             try
             {
-                Logger.LogInfo("Game ready - checking EVA maintenance pledge on all characters");
+                Logger.LogInfo("Game ready - checking EVA maintenance pledges on all characters");
                 
-                // Get the pledge definition
-                JsonPledge evaPledge = DataHandler.GetPledge("PledgeEVAMaintenance");
-                if (evaPledge == null)
+                // Get the pledge definitions
+                JsonPledge evaBatteryPledge = DataHandler.GetPledge("PledgeEVABatteryMaintenance");
+                JsonPledge evaO2Pledge = DataHandler.GetPledge("PledgeEVAO2Maintenance");
+                
+                if (evaBatteryPledge == null)
                 {
-                    Logger.LogError("PledgeEVAMaintenance not found in game data!");
+                    Logger.LogError("PledgeEVABatteryMaintenance not found in game data!");
+                }
+                
+                if (evaO2Pledge == null)
+                {
+                    Logger.LogError("PledgeEVAO2Maintenance not found in game data!");
+                }
+                
+                if (evaBatteryPledge == null && evaO2Pledge == null)
+                {
+                    Logger.LogError("Neither EVA maintenance pledge found, aborting!");
                     return;
                 }
 
-                int addedCount = 0;
-                int skippedCount = 0;
+                int batteryAddedCount = 0;
+                int batterySkippedCount = 0;
+                int o2AddedCount = 0;
+                int o2SkippedCount = 0;
 
                 // Iterate through all CondOwners (characters) in the game
                 foreach (var kvp in DataHandler.mapCOs)
@@ -95,25 +109,48 @@ namespace Ostranauts.Bit.SmarterHauling
                         continue;
                     }
 
-                    // Check if they already have the pledge
-                    if (!character.HasPledge(evaPledge, null))
+                    // Check and add battery maintenance pledge
+                    if (evaBatteryPledge != null)
                     {
-                        // Add the pledge
-                        Pledge2 newPledge = PledgeFactory.Factory(character, evaPledge, null);
-                        if (newPledge != null)
+                        if (!character.HasPledge(evaBatteryPledge, null))
                         {
-                            character.AddPledge(newPledge);
-                            addedCount++;
-                            Logger.LogDebug($"Added EVA maintenance pledge to {character.strNameFriendly}");
+                            Pledge2 newPledge = PledgeFactory.Factory(character, evaBatteryPledge, null);
+                            if (newPledge != null)
+                            {
+                                character.AddPledge(newPledge);
+                                batteryAddedCount++;
+                                Logger.LogDebug($"Added EVA battery maintenance pledge to {character.strNameFriendly}");
+                            }
+                        }
+                        else
+                        {
+                            batterySkippedCount++;
                         }
                     }
-                    else
+
+                    // Check and add O2 maintenance pledge
+                    if (evaO2Pledge != null)
                     {
-                        skippedCount++;
+                        if (!character.HasPledge(evaO2Pledge, null))
+                        {
+                            Pledge2 newPledge = PledgeFactory.Factory(character, evaO2Pledge, null);
+                            if (newPledge != null)
+                            {
+                                character.AddPledge(newPledge);
+                                o2AddedCount++;
+                                Logger.LogDebug($"Added EVA O2 maintenance pledge to {character.strNameFriendly}");
+                            }
+                        }
+                        else
+                        {
+                            o2SkippedCount++;
+                        }
                     }
                 }
 
-                Logger.LogInfo($"EVA maintenance pledge check complete: {addedCount} added, {skippedCount} already had it");
+                Logger.LogInfo($"EVA maintenance pledge check complete:");
+                Logger.LogInfo($"  Battery: {batteryAddedCount} added, {batterySkippedCount} already had it");
+                Logger.LogInfo($"  O2: {o2AddedCount} added, {o2SkippedCount} already had it");
             }
             catch (System.Exception ex)
             {
@@ -235,9 +272,9 @@ namespace Ostranauts.Bit.SmarterHauling
                 // Register ContainerDropEffect to handle smart container drops
                 LaunchControl.Instance.Interactions.RegisterEffect(new ContainerDropEffect());
 
-
-                // Register EVABatteryChargerSwapEffect to handle charger-based swaps
+                // Register EVA maintenance effects
                 LaunchControl.Instance.Interactions.RegisterEffect(new Effects.EVABatteryChargerSwapEffect());
+                LaunchControl.Instance.Interactions.RegisterEffect(new Effects.EVAO2BottleSwapEffect());
 
                 Logger.LogInfo("Registered interaction effects with BitLib Interactions system");
             }
@@ -262,8 +299,6 @@ namespace Ostranauts.Bit.SmarterHauling
                 var commandsObject = new GameObject("SmarterHaulingCommands");
                 UnityEngine.Object.DontDestroyOnLoad(commandsObject);
                 
-                // Register SearchItems command
-                commandsObject.AddComponent<Commands.SearchItemsCommand>();
                 
                 Logger.LogInfo("Registered SmarterHauling commands");
             }
@@ -284,16 +319,22 @@ namespace Ostranauts.Bit.SmarterHauling
                     return;
                 }
 
-                // Register EVA Maintenance pledge
-                bool success = LaunchControl.RegisterPledgeType("evamaintenance", typeof(Pledges.PledgeEVAMaintenance));
+                // Register EVA Battery Maintenance pledge
+                bool batterySuccess = LaunchControl.RegisterPledgeType("evabatterymaintenance", typeof(Pledges.PledgeEVAMaintenance));
                 
-                if (success)
+                // Register EVA O2 Maintenance pledge
+                bool o2Success = LaunchControl.RegisterPledgeType("evao2maintenance", typeof(Pledges.PledgeEVAMaintenance));
+                
+                if (batterySuccess && o2Success)
                 {
-                    Logger.LogInfo("Registered custom pledge types: EVA Maintenance");
+                    Logger.LogInfo("Registered custom pledge types: EVA Battery Maintenance, EVA O2 Maintenance");
                 }
                 else
                 {
-                    Logger.LogError("Failed to register EVA Maintenance pledge type");
+                    if (!batterySuccess)
+                        Logger.LogError("Failed to register EVA Battery Maintenance pledge type");
+                    if (!o2Success)
+                        Logger.LogError("Failed to register EVA O2 Maintenance pledge type");
                 }
             }
             catch (System.Exception ex)

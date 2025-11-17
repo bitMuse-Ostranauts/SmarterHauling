@@ -10,46 +10,19 @@ namespace Ostranauts.Bit.SmarterHauling.Effects
     /// Handles swapping an EVA suit battery with a charged one from an EVA charger.
     /// Interaction context: ACTSwapEVABattery
     /// </summary>
-    public class EVABatteryChargerSwapEffect : IEffect
+    public class EVABatteryChargerSwapEffect : EVAMaintenanceEffectBase
     {
         private const string InteractionName = "ACTSwapEVABattery";
-        private const string SuitBatterySlot = "pocket_EVABatt";
 
         private static readonly Dictionary<Guid, CondOwner> _chargers = new Dictionary<Guid, CondOwner>();
         private static readonly Dictionary<Guid, CondOwner> _targetBatteries = new Dictionary<Guid, CondOwner>();
-        private static CondTrigger _ctBattery;
-        private static CondTrigger _ctEVAOn;
 
-        private static CondTrigger CtBattery
-        {
-            get
-            {
-                if (_ctBattery == null)
-                {
-                    _ctBattery = DataHandler.GetCondTrigger("TIsFitContainerEVABattery");
-                }
-                return _ctBattery;
-            }
-        }
-
-        private static CondTrigger CtEVAOn
-        {
-            get
-            {
-                if (_ctEVAOn == null)
-                {
-                    _ctEVAOn = DataHandler.GetCondTrigger("TIsEVAOn");
-                }
-                return _ctEVAOn;
-            }
-        }
-
-        public bool ShouldPrepare(Interaction interaction)
+        public override bool ShouldPrepare(Interaction interaction)
         {
             return interaction != null && interaction.strName == InteractionName;
         }
 
-        public void Prepare(Interaction interaction)
+        public override void Prepare(Interaction interaction)
         {
             if (interaction == null)
             {
@@ -70,18 +43,27 @@ namespace Ostranauts.Bit.SmarterHauling.Effects
             }
         }
 
-        public bool ShouldExecute(Interaction interaction)
+        public override bool ShouldExecute(Interaction interaction)
         {
             return ShouldPrepare(interaction);
         }
 
-        public EffectResult Execute(Interaction interaction)
+        public override EffectResult Execute(Interaction interaction)
         {
             try
             {
                 if (interaction?.objUs == null)
                 {
                     Debug.LogWarning("[EVABatteryChargerSwap] Invalid interaction context");
+                    return new EffectResult(true);
+                }
+
+                // Check if actor is in player's company
+                // NPCs not in player's company are handled by the pledge (cheat charge)
+                // so this effect should only run for player's company members
+                if (!IsInPlayerCompany(interaction.objUs))
+                {
+                    Debug.Log($"[EVABatteryChargerSwap] {interaction.objUs.strNameFriendly} is not in player's company, skipping");
                     return new EffectResult(true);
                 }
 
@@ -203,45 +185,6 @@ namespace Ostranauts.Bit.SmarterHauling.Effects
             return battery;
         }
 
-        private static CondOwner FindEVASuit(CondOwner actor)
-        {
-            if (actor?.compSlots == null)
-            {
-                return null;
-            }
-
-            List<CondOwner> suits = actor.compSlots.GetCOs("shirt_out", false, CtEVAOn);
-            return suits?.FirstOrDefault();
-        }
-
-        private static bool TryGetSuitBattery(CondOwner suit, out CondOwner battery, out CondOwner batteryPocket)
-        {
-            battery = null;
-            batteryPocket = null;
-
-            if (suit == null || suit.compSlots == null)
-            {
-                return false;
-            }
-
-            foreach (Slot slot in suit.GetSlots(true))
-            {
-                foreach (CondOwner pocket in slot.aCOs) 
-                {
-                    if (!pocket.HasSubCOs)
-                        continue;
-
-                    foreach (CondOwner candidate in pocket.GetCOs(true, CtBattery)) 
-                    {
-                        battery = candidate;
-                        batteryPocket = pocket;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
 
         private static CondOwner SelectReplacementBattery(CondOwner charger, CondOwner currentBattery, CondOwner preferred)
         {

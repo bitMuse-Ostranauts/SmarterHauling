@@ -6,7 +6,12 @@
     {
       "op": "append",
       "field": "aCOs",
-      "value": "AddEVAMaintenancePledge=1.0x1"
+      "value": "AddEVABatteryMaintenancePledge=1.0x1"
+    },
+    {
+      "op": "append",
+      "field": "aCOs",
+      "value": "AddEVAO2MaintenancePledge=1.0x1"
     }
   ]
 }

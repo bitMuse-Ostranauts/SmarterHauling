@@ -1,8 +1,22 @@
 [
     {
-    "strName": "PledgeEVAMaintenance",
-    "strType": "evamaintenance",
-    "strNameFriendly": "EVA Maintenance",
+    "strName": "PledgeEVABatteryMaintenance",
+    "strType": "evabatterymaintenance",
+    "strNameFriendly": "EVA Battery Maintenance",
+    "strIATrigger": "",
+    "strIAEmergency": "",
+    "aIAEnd": [],
+    "nPriority": 4,
+    "bPlayerOnly": false,
+    "bNPCOnly": false,
+    "bCommandNegates": true,
+    "bPlayerKnowledgeOnly": false,
+    "bThemAllowDocked": true
+    },
+    {
+    "strName": "PledgeEVAO2Maintenance",
+    "strType": "evao2maintenance",
+    "strNameFriendly": "EVA O2 Maintenance",
     "strIATrigger": "",
     "strIAEmergency": "",
     "aIAEnd": [],

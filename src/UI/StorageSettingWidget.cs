@@ -78,8 +78,6 @@ namespace Ostranauts.Bit.SmarterHauling.UI
                     Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogError($"[StorageSettingWidget] Stack trace: {ex.StackTrace}");
                 }
                 Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogInfo("[StorageSettingWidget] Widget created and SetupUI called");
-                // Dump hierarchy for debugging
-                _instance.DumpHierarchy();
             }
 
             _instance.COTarget = condOwner;
@@ -295,25 +293,6 @@ namespace Ostranauts.Bit.SmarterHauling.UI
 
             // Mark as initialized
             Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogInfo("[StorageSettingWidget] SetupUI completed");
-        }
-
-        
-
-        /// <summary>
-        /// Dumps the widget hierarchy to the log for debugging
-        /// </summary>
-        private void DumpHierarchy()
-        {
-            try
-            {
-                Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogInfo("=== StorageSettingWidget Hierarchy Dump ===");
-                Ostranauts.Bit.Commands.DumpUICommand.DumpHierarchy(gameObject, 0);
-                Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogInfo("=== End Hierarchy Dump ===");
-            }
-            catch (System.Exception ex)
-            {
-                Ostranauts.Bit.SmarterHauling.SmarterHaulingPlugin.Logger.LogError($"[StorageSettingWidget] DumpHierarchy failed: {ex.Message}");
-            }
         }
 
         /// <summary>

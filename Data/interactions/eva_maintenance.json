@@ -3,8 +3,10 @@
         "strName": "ACTSwapEVAO2Bottle",
         "strNameFriendly": "Swap EVA O2 Bottle",
         "strDesc": "Swap depleted EVA suit O2 bottle with a full one",
-        "strTargetPoint": "use",
-        "strIAChainStart": "",
+        "strActionGroup" : "Use",
+        "strTargetPoint" : "use",
+        "bIgnoreFeelings": true,
+        "nLogging"         : 1,
         "bApplyChain": false,
         "bPause": false,
         "bAllowDocked": true,
@@ -13,14 +15,9 @@
         "bAllowPressureSuit": true,
         "bPlayerKnowledgeOnly": false,
         "bCommandNegates": false,
-        "nPriority": 0,
-        "fDuration": 1.0,
+        "fDuration"         : 0.0003,
         "strAnim": "ItemUse",
         "bHardCode": true,
-        "aTriggerUs": [],
-        "aTriggerThem": [
-            "TIsFitContainerEVABottle"
-        ],
         "aChain": []
     },
     {
@@ -44,9 +41,16 @@
         "bHardCode": true
     },
     {
-        "strName": "AddEVAMaintenancePledge",
-        "strDesc": "Adds EVA maintenance pledge to character",
-        "strPledgeAdd": "PSPledgeEVAMaintenance",
+        "strName": "AddEVABatteryMaintenancePledge",
+        "strDesc": "Adds EVA battery maintenance pledge to character",
+        "strPledgeAdd": "PSPledgeEVABatteryMaintenance",
+        "bApplyChain": true,
+        "fDuration": 0.0
+    },
+    {
+        "strName": "AddEVAO2MaintenancePledge",
+        "strDesc": "Adds EVA O2 maintenance pledge to character",
+        "strPledgeAdd": "PSPledgeEVAO2Maintenance",
         "bApplyChain": true,
         "fDuration": 0.0
     }

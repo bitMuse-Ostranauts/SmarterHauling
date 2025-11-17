@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Ostranauts.Pledges;
+using Ostranauts.Bit.SmarterHauling.Utilities;
 
 namespace Ostranauts.Bit.SmarterHauling.Pledges
 {
@@ -102,13 +103,11 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
 
             if (this.Finished())
             {
-                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Pledge finished");
                 return true;
             }
 
             if (base.Us.ship == null)
             {
-                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No ship");
                 return false;
             }
 
@@ -119,9 +118,8 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             }
 
             // Check if wearing EVA suit
-            if (!IsWearingEVASuit())
+            if (!EVAUtils.IsWearingEVASuit(base.Us))
             {
-                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Not wearing EVA suit");
                 return false;
             }
 
@@ -147,6 +145,13 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             // Priority 1: Handle battery emergency
             if (batteryEmergency)
             {
+                // NPCs not in player's company get cheated charge instead of searching for batteries
+                if (!EVAUtils.IsInPlayerCompany(base.Us))
+                {
+                    CheatBatteryCharge();
+                    return true;
+                }
+                
                 Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - BATTERY EMERGENCY! Searching for replacement...");
                 BatteryCandidate replacementBattery = FindReplacementBattery();
                 if (replacementBattery != null)
@@ -170,6 +175,13 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             // Priority 2: Handle O2 emergency
             if (o2Emergency)
             {
+                // NPCs not in player's company get cheated charge instead of searching for O2 bottles
+                if (!EVAUtils.IsInPlayerCompany(base.Us))
+                {
+                    CheatO2Charge();
+                    return true;
+                }
+                
                 Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - O2 EMERGENCY! Searching for replacement...");
                 CondOwner replacementO2 = FindReplacementO2Bottle();
                 if (replacementO2 != null)
@@ -193,6 +205,13 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             // Priority 3: Handle low battery (not emergency)
             if (batteryPercent > 0 && batteryPercent < NORMAL_THRESHOLD)
             {
+                // NPCs not in player's company get cheated charge instead of searching for batteries
+                if (!EVAUtils.IsInPlayerCompany(base.Us))
+                {
+                    CheatBatteryCharge();
+                    return true;
+                }
+                
                 Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Battery low (<25%), searching for replacement...");
                 BatteryCandidate replacementBattery = FindReplacementBattery();
                 if (replacementBattery != null)
@@ -210,6 +229,13 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             // Priority 4: Handle low O2 (not emergency)
             if (o2Percent > 0 && o2Percent < NORMAL_THRESHOLD)
             {
+                // NPCs not in player's company get cheated charge instead of searching for O2 bottles
+                if (!EVAUtils.IsInPlayerCompany(base.Us))
+                {
+                    CheatO2Charge();
+                    return true;
+                }
+                
                 Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - O2 low (<25%), searching for replacement...");
                 CondOwner replacementO2 = FindReplacementO2Bottle();
                 if (replacementO2 != null)
@@ -228,20 +254,6 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             return false;
         }
 
-        /// <summary>
-        /// Check if the character is wearing an EVA suit
-        /// </summary>
-        private bool IsWearingEVASuit()
-        {
-            if (base.Us == null || base.Us.compSlots == null)
-            {
-                return false;
-            }
-
-            // Check for EVA suit in the "shirt_out" slot
-            List<CondOwner> evaSuits = base.Us.compSlots.GetCOs("shirt_out", false, CtEVAOn);
-            return evaSuits != null && evaSuits.Count > 0;
-        }
 
         /// <summary>
         /// Get the current battery and O2 levels from the EVA suit
@@ -621,6 +633,82 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             else
             {
                 Debug.LogError($"[EVAMaintenance] {base.Us?.strNameFriendly} - SeekEVAO2 interaction not found!");
+            }
+        }
+
+        /// <summary>
+        /// Cheat battery charge for NPCs not in player's company (25-50% of max).
+        /// </summary>
+        private void CheatBatteryCharge()
+        {
+            if (base.Us == null)
+                return;
+
+            // Get EVA suit
+            List<CondOwner> evaSuits = base.Us.compSlots?.GetCOs("shirt_out", false, CtEVAOn);
+            if (evaSuits == null || evaSuits.Count == 0)
+                return;
+
+            CondOwner evaSuit = evaSuits[0];
+            List<CondOwner> components = evaSuit.GetCOs(false, null);
+            if (components == null)
+                return;
+
+            // Find the battery
+            foreach (CondOwner component in components)
+            {
+                if (CtEVABattery.Triggered(component, null, false))
+                {
+                    double maxCapacity = component.GetCondAmount("StatPowerMax");
+                    if (maxCapacity > 0)
+                    {
+                        float chargePercent = UnityEngine.Random.Range(0.25f, 0.50f);
+                        double chargeAmount = maxCapacity * chargePercent;
+                        component.AddCondAmount("StatPower", chargeAmount);
+                        Debug.Log($"[EVAMaintenance] Cheated {chargePercent:P0} charge ({chargeAmount:F1} units) to {base.Us.strNameFriendly}'s battery");
+                    }
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cheat O2 charge for NPCs not in player's company (25-50% of max).
+        /// </summary>
+        private void CheatO2Charge()
+        {
+            if (base.Us == null)
+                return;
+
+            // Get EVA suit
+            List<CondOwner> evaSuits = base.Us.compSlots?.GetCOs("shirt_out", false, CtEVAOn);
+            if (evaSuits == null || evaSuits.Count == 0)
+                return;
+
+            CondOwner evaSuit = evaSuits[0];
+            List<CondOwner> components = evaSuit.GetCOs(false, null);
+            if (components == null)
+                return;
+
+            // Find the O2 bottle
+            foreach (CondOwner component in components)
+            {
+                if (CtEVABottle.Triggered(component, null, false))
+                {
+                    GasContainer gasContainer = component.GetComponent<GasContainer>();
+                    if (gasContainer != null)
+                    {
+                        double maxCapacity = component.GetCondAmount("StatRef");
+                        if (maxCapacity > 0)
+                        {
+                            float chargePercent = UnityEngine.Random.Range(0.25f, 0.50f);
+                            double chargeAmount = maxCapacity * chargePercent;
+                            gasContainer.AddGasMols("O2", chargeAmount, true);
+                            Debug.Log($"[EVAMaintenance] Cheated {chargePercent:P0} charge ({chargeAmount:F1} mols O2) to {base.Us.strNameFriendly}'s bottle");
+                        }
+                    }
+                    return;
+                }
             }
         }
 
