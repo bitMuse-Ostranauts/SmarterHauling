@@ -36,20 +36,8 @@ source = "Autoload.Meta.toml"
 target = "./plugins/SmarterHauling/Autoload.Meta.toml"
 
 [[build.copy]]
-source = "data/pledges/PledgeEVAMaintenance.json"
-target = "./plugins/SmarterHauling/data/pledges/PledgeEVAMaintenance.json"
-
-[[build.copy]]
-source = "data/interactions/eva_maintenance.json"
-target = "./plugins/SmarterHauling/data/interactions/eva_maintenance.json"
-
-[[build.copy]]
-source = "data/loot/001-add-eva-pledge-to-npcs.patch"
-target = "./plugins/SmarterHauling/data/loot/001-add-eva-pledge-to-npcs.patch"
-
-[[build.copy]]
-source = "data/loot/002-add-eva-pledge-to-player.patch"
-target = "./plugins/SmarterHauling/data/loot/002-add-eva-pledge-to-player.patch"
+source = "data"
+target = "./plugins/SmarterHauling/data"
 
 [publish]
 repository = "https://thunderstore.io"
