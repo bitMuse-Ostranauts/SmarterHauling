@@ -54,11 +54,72 @@ namespace Ostranauts.Bit.SmarterHauling
             // Register custom pledge types
             RegisterPledgeTypes();
 
+            // Subscribe to game ready event to ensure pledges are added to all characters
+            LaunchControl.OnGameReady += OnGameReady;
+
             // Apply Harmony patches (excludes MegaToolTipPatches - now handled by BitLib)
             _harmony = new Harmony(PluginInfo.PLUGIN_GUID);
             _harmony.PatchAll(typeof(SmarterHaulingPlugin).Assembly);
             
             Logger.LogInfo("SmarterHauling patches applied successfully!");
+        }
+
+        /// <summary>
+        /// Called when the game has finished loading. Ensures EVA maintenance pledge is added to all characters.
+        /// </summary>
+        private void OnGameReady()
+        {
+            try
+            {
+                Logger.LogInfo("Game ready - checking EVA maintenance pledge on all characters");
+                
+                // Get the pledge definition
+                JsonPledge evaPledge = DataHandler.GetPledge("PledgeEVAMaintenance");
+                if (evaPledge == null)
+                {
+                    Logger.LogError("PledgeEVAMaintenance not found in game data!");
+                    return;
+                }
+
+                int addedCount = 0;
+                int skippedCount = 0;
+
+                // Iterate through all CondOwners (characters) in the game
+                foreach (var kvp in DataHandler.mapCOs)
+                {
+                    CondOwner character = kvp.Value;
+                    
+                    // Only add to humans (NPCs and player)
+                    if (character == null || !character.HasCond("IsHuman"))
+                    {
+                        continue;
+                    }
+
+                    // Check if they already have the pledge
+                    if (!character.HasPledge(evaPledge, null))
+                    {
+                        // Add the pledge
+                        Pledge2 newPledge = PledgeFactory.Factory(character, evaPledge, null);
+                        if (newPledge != null)
+                        {
+                            character.AddPledge(newPledge);
+                            addedCount++;
+                            Logger.LogDebug($"Added EVA maintenance pledge to {character.strNameFriendly}");
+                        }
+                    }
+                    else
+                    {
+                        skippedCount++;
+                    }
+                }
+
+                Logger.LogInfo($"EVA maintenance pledge check complete: {addedCount} added, {skippedCount} already had it");
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError($"Error adding EVA maintenance pledges on game load: {ex.Message}");
+                Logger.LogError(ex.StackTrace);
+            }
         }
 
         private void SetupConfiguration()
@@ -174,7 +235,11 @@ namespace Ostranauts.Bit.SmarterHauling
                 // Register ContainerDropEffect to handle smart container drops
                 LaunchControl.Instance.Interactions.RegisterEffect(new ContainerDropEffect());
 
-                Logger.LogInfo("Registered ContainerDropEffect with BitLib Interactions system");
+
+                // Register EVABatteryChargerSwapEffect to handle charger-based swaps
+                LaunchControl.Instance.Interactions.RegisterEffect(new Effects.EVABatteryChargerSwapEffect());
+
+                Logger.LogInfo("Registered interaction effects with BitLib Interactions system");
             }
             catch (System.Exception ex)
             {
@@ -240,6 +305,9 @@ namespace Ostranauts.Bit.SmarterHauling
 
         private void OnDestroy()
         {
+            // Unsubscribe from game ready event
+            LaunchControl.OnGameReady -= OnGameReady;
+            
             _harmony?.UnpatchSelf();
             Logger.LogInfo("SmarterHauling unloaded");
         }

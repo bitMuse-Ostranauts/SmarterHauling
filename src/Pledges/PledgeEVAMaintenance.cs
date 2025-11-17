@@ -9,7 +9,7 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
     /// Pledge that manages EVA suit maintenance - automatically swaps low batteries and O2 bottles.
     /// In emergency situations with no replacements available, removes helmet if atmosphere is breathable.
     /// </summary>
-    public class PledgeEVAMaintenance : BasePledgeFindItem
+    public class PledgeEVAMaintenance : Pledge2
     {
         // Thresholds
         private const double NORMAL_THRESHOLD = 0.25; // 25%
@@ -21,8 +21,18 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
         private CondTrigger _ctEVAOn;
         private CondTrigger _ctEVABattery;
         private CondTrigger _ctEVABottle;
-        private CondTrigger _ctEVACharger;
-        private CondTrigger _ctContainer;
+
+        private sealed class BatteryCandidate
+        {
+            public CondOwner Charger { get; }
+            public CondOwner Battery { get; }
+
+            public BatteryCandidate(CondOwner charger, CondOwner battery)
+            {
+                Charger = charger;
+                Battery = battery;
+            }
+        }
 
         // Emergency tracking
         private bool _batteryEmergency = false;
@@ -30,15 +40,6 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
         
         // Cooldown tracking
         private double _lastCheckTime = -1000.0;
-
-        protected override CondTrigger EmergencyConditions
-        {
-            get
-            {
-                // Custom emergency logic - see IsEmergency() method
-                return null;
-            }
-        }
 
         private CondTrigger CtEVAOn
         {
@@ -76,30 +77,6 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             }
         }
 
-        private CondTrigger CtEVACharger
-        {
-            get
-            {
-                if (_ctEVACharger == null)
-                {
-                    _ctEVACharger = DataHandler.GetCondTrigger("TIsEVACharger");
-                }
-                return _ctEVACharger;
-            }
-        }
-
-        private CondTrigger CtContainer
-        {
-            get
-            {
-                if (_ctContainer == null)
-                {
-                    _ctContainer = DataHandler.GetCondTrigger("TIsContainer");
-                }
-                return _ctContainer;
-            }
-        }
-
         public override bool IsEmergency()
         {
             if (base.Us == null || base.Us.HasCond("IsAIManual"))
@@ -125,11 +102,13 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
 
             if (this.Finished())
             {
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Pledge finished");
                 return true;
             }
 
             if (base.Us.ship == null)
             {
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No ship");
                 return false;
             }
 
@@ -142,6 +121,7 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             // Check if wearing EVA suit
             if (!IsWearingEVASuit())
             {
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Not wearing EVA suit");
                 return false;
             }
 
@@ -153,9 +133,12 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             }
             
             _lastCheckTime = currentTime;
+            Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Starting EVA maintenance check");
 
             // Check current battery and O2 levels
             CheckEVALevels(out double batteryPercent, out double o2Percent);
+            
+            Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Battery: {(batteryPercent >= 0 ? $"{batteryPercent * 100:F1}%" : "N/A")}, O2: {(o2Percent >= 0 ? $"{o2Percent * 100:F1}%" : "N/A")}");
 
             // Check for emergency
             bool batteryEmergency = batteryPercent > 0 && batteryPercent < EMERGENCY_THRESHOLD;
@@ -164,59 +147,84 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             // Priority 1: Handle battery emergency
             if (batteryEmergency)
             {
-                CondOwner replacementBattery = FindReplacementBattery();
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - BATTERY EMERGENCY! Searching for replacement...");
+                BatteryCandidate replacementBattery = FindReplacementBattery();
                 if (replacementBattery != null)
                 {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Found replacement battery: {replacementBattery.Battery.strNameFriendly}");
                     QueueBatterySwap(replacementBattery);
                     return true;
                 }
                 else if (IsAtmosphereBreathable())
                 {
-                    // Remove helmet as emergency measure
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No battery found, atmosphere breathable, removing helmet");
                     RemoveHelmet();
                     return true;
+                }
+                else
+                {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No battery found and atmosphere NOT breathable!");
                 }
             }
 
             // Priority 2: Handle O2 emergency
             if (o2Emergency)
             {
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - O2 EMERGENCY! Searching for replacement...");
                 CondOwner replacementO2 = FindReplacementO2Bottle();
                 if (replacementO2 != null)
                 {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Found replacement O2: {replacementO2.strNameFriendly}");
                     QueueO2Swap(replacementO2);
                     return true;
                 }
                 else if (IsAtmosphereBreathable())
                 {
-                    // Remove helmet as emergency measure
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No O2 found, atmosphere breathable, removing helmet");
                     RemoveHelmet();
                     return true;
+                }
+                else
+                {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No O2 found and atmosphere NOT breathable!");
                 }
             }
 
             // Priority 3: Handle low battery (not emergency)
             if (batteryPercent > 0 && batteryPercent < NORMAL_THRESHOLD)
             {
-                CondOwner replacementBattery = FindReplacementBattery();
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Battery low (<25%), searching for replacement...");
+                BatteryCandidate replacementBattery = FindReplacementBattery();
                 if (replacementBattery != null)
                 {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Found replacement battery: {replacementBattery.Battery.strNameFriendly}");
                     QueueBatterySwap(replacementBattery);
                     return true;
+                }
+                else
+                {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No suitable replacement battery found");
                 }
             }
 
             // Priority 4: Handle low O2 (not emergency)
             if (o2Percent > 0 && o2Percent < NORMAL_THRESHOLD)
             {
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - O2 low (<25%), searching for replacement...");
                 CondOwner replacementO2 = FindReplacementO2Bottle();
                 if (replacementO2 != null)
                 {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Found replacement O2: {replacementO2.strNameFriendly}");
                     QueueO2Swap(replacementO2);
                     return true;
                 }
+                else
+                {
+                    Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - No suitable replacement O2 found");
+                }
             }
 
+            Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - EVA levels OK, no action needed");
             return false;
         }
 
@@ -294,7 +302,7 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
         /// <summary>
         /// Find a replacement battery with at least 50% charge
         /// </summary>
-        private CondOwner FindReplacementBattery()
+        private BatteryCandidate FindReplacementBattery()
         {
             if (base.Us == null || base.Us.ship == null)
             {
@@ -305,6 +313,7 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             
             // Always search current ship
             shipsToSearch.Add(base.Us.ship);
+            Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Searching for battery on {base.Us.ship.strRegID}");
 
             // In emergency, also search owned docked ships
             if (_batteryEmergency)
@@ -314,42 +323,76 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
                     if (base.Us.OwnsShip(ship.strRegID))
                     {
                         shipsToSearch.Add(ship);
+                        Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Also searching owned ship {ship.strRegID}");
                     }
                 }
             }
 
-            // Search for EVA chargers with good batteries
+            // Search for EVA batteries that are sitting in chargers
             foreach (Ship ship in shipsToSearch)
             {
-                List<CondOwner> chargers = ship.GetCOs(CtEVACharger, true, false, false);
-                foreach (CondOwner charger in chargers)
+                List<CondOwner> batteries = ship.GetCOs(CtEVABattery, true, false, true);
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Found {batteries?.Count ?? 0} EVA batteries on {ship.strRegID}");
+
+                foreach (CondOwner battery in batteries)
                 {
-                    if (charger == null)
-                        continue;
+                    string parentName = battery.objCOParent?.strNameFriendly ?? "null";
+                    string parentCode = battery.objCOParent?.strCODef ?? "null";
+                    Debug.Log($"[EVAMaintenance]    Candidate battery: {battery.strNameFriendly} ({battery.strCODef}) parent={parentName} ({parentCode})");
 
-                    // Get batteries from the charger
-                    List<CondOwner> batteries = charger.GetCOs(false, CtEVABattery);
-                    if (batteries == null)
-                        continue;
-
-                    foreach (CondOwner battery in batteries)
+                    if (!IsValidReplacement(battery))
                     {
-                        if (!IsValidReplacement(battery))
-                            continue;
+                        Debug.Log($"[EVAMaintenance]    -> rejected: not valid replacement (likely being carried)");
+                        continue;
+                    }
 
-                        // Check battery charge level (use StatPowerMax to avoid triggering updates)
-                        double powerMax = battery.GetCondAmount("StatPowerMax");
+                    CondOwner parent = battery.objCOParent;
 
-                        if (powerMax > 0)
+                    // Battery must have a parent charger/container
+                    if (parent == null)
+                    {
+                        Debug.Log($"[EVAMaintenance]    -> rejected: no parent container");
+                        continue;
+                    }
+
+                    // Skip batteries already installed in EVA suits or worn
+                    if (CtEVAOn != null && CtEVAOn.Triggered(parent, null, false))
+                    {
+                        Debug.Log($"[EVAMaintenance]    -> rejected: parent appears to be an EVA suit component");
+                        continue;
+                    }
+
+                    // Ensure the battery is sitting in an EVA charger we have access to
+                    if (!IsEVACharger(parent))
+                    {
+                        Debug.Log($"[EVAMaintenance]    -> rejected: parent not recognised as EVA charger");
+                        continue;
+                    }
+
+                    // Check battery charge level (use StatPowerMax to avoid triggering updates)
+                    double powerMax = battery.GetCondAmount("StatPowerMax");
+
+                    if (powerMax > 0)
+                    {
+                        double power = battery.GetCondAmount("StatPower");
+                        double percent = power / powerMax;
+
+                        CondOwner targetForPath = parent ?? battery;
+
+                        bool reachable = IsReachable(base.Us, targetForPath);
+                        if (percent >= REPLACEMENT_MIN_THRESHOLD && reachable)
                         {
-                            double power = battery.GetCondAmount("StatPower");
-                            double percent = power / powerMax;
-
-                            if (percent >= REPLACEMENT_MIN_THRESHOLD && IsReachable(base.Us, battery))
-                            {
-                                return battery;
-                            }
+                            Debug.Log($"[EVAMaintenance]    -> accepted: {percent * 100:F1}% charged and reachable");
+                            return new BatteryCandidate(parent, battery);
                         }
+                        else
+                        {
+                            Debug.Log($"[EVAMaintenance]    -> rejected: percent={percent * 100:F1}% reachable={reachable}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log($"[EVAMaintenance]    -> rejected: StatPowerMax <= 0");
                     }
                 }
             }
@@ -427,6 +470,42 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             return true;
         }
 
+        private bool IsEVACharger(CondOwner condOwner)
+        {
+            if (condOwner == null)
+            {
+                Debug.Log($"[EVAMaintenance]    -> charger check failed: null parent");
+                return false;
+            }
+
+            // Check by code definition
+            if (!string.IsNullOrEmpty(condOwner.strCODef) &&
+                condOwner.strCODef.IndexOf("ChargerBattEVA", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Debug.Log($"[EVAMaintenance]    -> charger check success via strCODef: {condOwner.strCODef}");
+                return true;
+            }
+
+            // Fallback: check for identifying conditions
+            if (condOwner.HasCond("IsEVACharger") || condOwner.HasCond("IsChargerBattEVA"))
+            {
+                Debug.Log($"[EVAMaintenance]    -> charger check success via condition");
+                return true;
+            }
+
+            // Also check friendly name as last resort
+            if (!string.IsNullOrEmpty(condOwner.strNameFriendly) &&
+                condOwner.strNameFriendly.IndexOf("EVA", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                condOwner.strNameFriendly.IndexOf("Charger", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Debug.Log($"[EVAMaintenance]    -> charger check success via friendly name: {condOwner.strNameFriendly}");
+                return true;
+            }
+
+            Debug.Log($"[EVAMaintenance]    -> charger check failed for parent {condOwner.strNameFriendly} ({condOwner.strCODef})");
+            return false;
+        }
+
         /// <summary>
         /// Check if a target is reachable via pathfinding
         /// </summary>
@@ -490,15 +569,30 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
         /// <summary>
         /// Queue the battery swap interaction
         /// </summary>
-        private void QueueBatterySwap(CondOwner replacementBattery)
+        private void QueueBatterySwap(BatteryCandidate candidate)
         {
-            if (replacementBattery == null)
+            if (candidate?.Battery == null || base.Us == null)
                 return;
 
-            Interaction interaction = DataHandler.GetInteraction("SeekEVABattery", null, false);
-            if (interaction != null)
+            Interaction interaction = DataHandler.GetInteraction("ACTSwapEVABattery", null, false);
+            if (interaction == null)
             {
-                base.Us.QueueInteraction(replacementBattery, interaction, true);
+                Debug.LogError($"[EVAMaintenance] {base.Us?.strNameFriendly} - ACTSwapEVABattery interaction not found!");
+                return;
+            }
+
+            CondOwner charger = candidate.Charger ?? candidate.Battery.objCOParent;
+
+            // interaction.objUs = base.Us;
+            // interaction.objThem = charger ?? candidate.Battery;
+            // interaction.obj3rd = candidate.Battery;
+
+            Debug.Log($"[EVAMaintenance] {base.Us.strNameFriendly} - Queuing ACTSwapEVABattery interaction targeting {(interaction.objThem?.strNameFriendly ?? "null")}");
+
+            if (!base.Us.QueueInteraction(candidate.Battery, interaction, true))
+            {
+                Debug.LogWarning($"[EVAMaintenance] {base.Us.strNameFriendly} - Failed to queue ACTSwapEVABattery");
+                DataHandler.ReleaseTrackedInteraction(interaction);
             }
         }
 
@@ -513,7 +607,20 @@ namespace Ostranauts.Bit.SmarterHauling.Pledges
             Interaction interaction = DataHandler.GetInteraction("SeekEVAO2", null, false);
             if (interaction != null)
             {
-                base.Us.QueueInteraction(replacementO2, interaction, true);
+                interaction.objUs = base.Us;
+                interaction.objThem = replacementO2.objCOParent ?? replacementO2;
+                interaction.obj3rd = replacementO2;
+
+                Debug.Log($"[EVAMaintenance] {base.Us?.strNameFriendly} - Queuing SeekEVAO2 interaction for {replacementO2.strNameFriendly}");
+                if (!base.Us.QueueInteraction(interaction.objThem, interaction, true))
+                {
+                    Debug.LogWarning($"[EVAMaintenance] {base.Us?.strNameFriendly} - Failed to queue SeekEVAO2 interaction");
+                    DataHandler.ReleaseTrackedInteraction(interaction);
+                }
+            }
+            else
+            {
+                Debug.LogError($"[EVAMaintenance] {base.Us?.strNameFriendly} - SeekEVAO2 interaction not found!");
             }
         }
 

@@ -1,11 +1,11 @@
 [
     {
-        "strName": "SeekEVAO2",
+        "strName": "ACTSwapEVAO2Bottle",
         "strNameFriendly": "Swap EVA O2 Bottle",
         "strDesc": "Swap depleted EVA suit O2 bottle with a full one",
         "strTargetPoint": "use",
-        "strIAChainStart": "PickupItemStack",
-        "bApplyChain": true,
+        "strIAChainStart": "",
+        "bApplyChain": false,
         "bPause": false,
         "bAllowDocked": true,
         "bThemAllowDocked": true,
@@ -14,18 +14,24 @@
         "bPlayerKnowledgeOnly": false,
         "bCommandNegates": false,
         "nPriority": 0,
-        "fDuration": 0.0,
+        "fDuration": 1.0,
+        "strAnim": "ItemUse",
+        "bHardCode": true,
         "aTriggerUs": [],
-        "aTriggerThem": [],
+        "aTriggerThem": [
+            "TIsFitContainerEVABottle"
+        ],
         "aChain": []
     },
     {
-        "strName": "SeekEVABattery",
+        "strName": "ACTSwapEVABattery",
         "strNameFriendly": "Swap EVA Battery",
         "strDesc": "Swap depleted EVA suit battery with a charged one",
-        "strTargetPoint": "use",
-        "strIAChainStart": "PickupItemStack",
-        "bApplyChain": true,
+        "strActionGroup" : "Use",
+        "strTargetPoint" : "use",
+        "bIgnoreFeelings": true,
+        "nLogging"         : 1,
+        "bApplyChain": false,
         "bPause": false,
         "bAllowDocked": true,
         "bThemAllowDocked": true,
@@ -33,11 +39,9 @@
         "bAllowPressureSuit": true,
         "bPlayerKnowledgeOnly": false,
         "bCommandNegates": false,
-        "nPriority": 0,
-        "fDuration": 0.0,
-        "aTriggerUs": [],
-        "aTriggerThem": [],
-        "aChain": []
+        "fDuration"         : 0.0003,
+        "strAnim": "ItemUse",
+        "bHardCode": true
     },
     {
         "strName": "AddEVAMaintenancePledge",
