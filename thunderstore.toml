@@ -36,20 +36,12 @@ source = "Autoload.Meta.toml"
 target = "./plugins/SmarterHauling/Autoload.Meta.toml"
 
 [[build.copy]]
-source = "data/Pledges/PledgeEVAMaintenance.json"
-target = "./plugins/SmarterHauling/data/Pledges/PledgeEVAMaintenance.json"
+source = "data/pledges/PledgeEVAMaintenance.json"
+target = "./plugins/SmarterHauling/data/pledges/PledgeEVAMaintenance.json"
 
 [[build.copy]]
-source = "data/Interactions/AddEVAMaintenancePledge.json"
-target = "./plugins/SmarterHauling/data/Interactions/AddEVAMaintenancePledge.json"
-
-[[build.copy]]
-source = "data/Interactions/SeekEVABattery.json"
-target = "./plugins/SmarterHauling/data/Interactions/SeekEVABattery.json"
-
-[[build.copy]]
-source = "data/Interactions/SeekEVAO2.json"
-target = "./plugins/SmarterHauling/data/Interactions/SeekEVAO2.json"
+source = "data/interactions/eva_maintenance.json"
+target = "./plugins/SmarterHauling/data/interactions/eva_maintenance.json"
 
 [[build.copy]]
 source = "data/loot/001-add-eva-pledge-to-npcs.patch"
